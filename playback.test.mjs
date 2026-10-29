@@ -34,4 +34,10 @@ function harness(){
 {
  const{run,node}=harness();run("api=async()=>({video:st.videos[0]});ensureYT=async()=>{throw Error('Network test failure')}");await run("play('aaaaaaaaaaa')");assert.match(node('#playback-status').textContent,/Network test failure/);assert.equal(node('#retry-player').classList.hidden,false);
 }
+{
+ const{run,context}=harness();let calls=0;context.apiCall=()=>calls++;
+ run("st.videos[0].cachedAt=Date.now();api=async()=>{apiCall();throw Error('No key')};ensureYT=async()=>{throw Error('Stop after selection')};youtubeKey='';");
+ await run("play('aaaaaaaaaaa')");assert.equal(calls,0,'Fresh approved metadata permits playback without a new API request');assert.equal(run('current.id'),'aaaaaaaaaaa');
+ run("current=null;st.videos[0].cachedAt=Date.now()-86400001");await run("play('aaaaaaaaaaa')");assert.equal(calls,1,'Stale metadata must be refreshed');assert.equal(run('current'),null);
+}
 console.log('Playback checks passed: completion boundary, stale-video protection, tracking exclusion, readiness, close-before-ready, request races, and retry feedback.');

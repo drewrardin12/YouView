@@ -69,7 +69,7 @@ function ensureYT(){
  });return ytPromise;
 }
 function createPlayerFrame(id,start){
- const frame=document.createElement('iframe');frame.id='ytplayer';frame.title='YouTube video player';frame.width='100%';frame.height='100%';frame.allow='autoplay; encrypted-media; fullscreen; picture-in-picture';frame.allowFullscreen=true;frame.referrerPolicy='strict-origin-when-cross-origin';frame.loading='eager';
+ const frame=document.createElement('iframe');frame.id='ytplayer';frame.title='YouTube video player';frame.width='100%';frame.height='100%';frame.allow='autoplay; encrypted-media; fullscreen; picture-in-picture';frame.allowFullscreen=true;frame.referrerPolicy='strict-origin-when-cross-origin';frame.loading='eager';frame.frameBorder='0';
  const url=new URL('https://www.youtube.com/embed/'+encodeURIComponent(id));url.search=new URLSearchParams({enablejsapi:'1',playsinline:'1',rel:'0',origin:location.origin,start:String(Math.floor(start))}).toString();frame.src=url.href;$('#player-frame').replaceChildren(frame);
 }
 function playerMatchesVideo(target){try{const url=new URL(target.getVideoUrl());return url.searchParams.get('v')===current?.id}catch{return false}}
@@ -85,7 +85,10 @@ function playerStateChanged(e){
 async function play(id,queue=null){
  const request=++playRequest;
  let v=st.videos.find(v=>v.id===id);if(!v||!ch(v.channelId))return toast('This channel is not approved.');
- try{const d=await api('/api/video?id='+encodeURIComponent(id));if(request!==playRequest)return;if(!d.video||!ch(d.video.channelId))return toast('This video does not belong to an approved channel.');Object.assign(v,d.video)}catch(e){if(request===playRequest)toast(e.message+' Use Open in YouTube if needed.');return}
+ const cacheAge=Date.now()-Number(v.cachedAt);
+ if(!Number.isFinite(cacheAge)||cacheAge<0||cacheAge>=86400000||v.live){
+  try{const d=await api('/api/video?id='+encodeURIComponent(id));if(request!==playRequest)return;if(!d.video||!ch(d.video.channelId))return toast('This video does not belong to an approved channel.');Object.assign(v,d.video)}catch(e){if(request===playRequest)toast(e.message+' Refresh this video’s metadata in Settings, or open it in YouTube.');return}
+ }
  if(request!==playRequest)return;
  saveProgress();playbackQueue=queue||[];transitioning=true;current=v;
  const start=st.progress[id]?.finished?0:st.progress[id]?.position||0;pendingVideo={id,start};

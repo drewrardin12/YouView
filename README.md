@@ -45,3 +45,5 @@ PiP and casting redirect buttons have been removed at the user’s request. Nati
 The chapter parser now accepts IrishWeegee’s bracketed start/end ranges and seeks to each range’s start. Existing negative chapter caches are invalidated for the parser update. Paste an approved YouTube video link in search to open it directly; an existing unfinished position takes precedence over a link timestamp.
 
 Regular videos request native iOS fullscreen playback (`playsinline=0`); Shorts retain inline playback (`playsinline=1`). Switching between these modes rebuilds the player while preserving saved progress. Fullscreen and native media controls remain enabled. Actual PiP/AirPlay availability still needs verification on an iPhone.
+
+Simplicity comparison: regular videos now receive a fresh autoplaying embed per selection. The IFrame API attaches for progress tracking without loading the initial video a second time. This follows Simplicity’s initial embed flow while retaining verified progress handling; iPhone native PiP/AirPlay remains unverified.

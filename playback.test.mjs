@@ -61,4 +61,13 @@ function harness(){
  run("api=async()=>{throw Error('Should be cached')}");await run('refreshLiveChannel(st.channels[0])');assert.equal(run('st.channels[0].liveError'),undefined);
  run("api=async()=>{throw Error('Quota failure')}");await run('refreshLiveChannel(st.channels[0],true)');assert.equal(run('st.channels[0].liveError'),'Quota failure');assert.equal(run("st.videos.find(v=>v.id==='ccccccccccc').live"),true);
 }
-console.log('Checks passed: playback lifecycle, Shorts filtering/fullscreen, counter reset, live discovery, allowlist, deduplication, caching, and failure preservation.');
+{
+ const{run,context}=harness();const session=new Map(),local=new Map();const storage=m=>({getItem:k=>m.get(k)||null,setItem:(k,v)=>m.set(k,v),removeItem:k=>m.delete(k)});
+ context.sessionStorage=storage(session);context.localStorage=storage(local);context.window.sessionStorage=context.sessionStorage;context.window.localStorage=context.localStorage;
+ run("saveKey('fixture-key',false)");assert.equal(local.size,0);assert.equal(run('readKey()'),'fixture-key');
+ run("saveKey('fixture-key',true)");session.clear();assert.equal(run('readKey()'),'fixture-key','Remembered key survives the end of a browser session');
+ run('forgetKey()');assert.equal(run('readKey()'),'');assert.equal(local.size,0);
+ run("saveKey('fixture-key',true);saveKey('fixture-key',false)");assert.equal(local.size,0,'Session-only choice removes a previously remembered key');
+ assert.match(run('playbackErrorMessage(150)'),/creator blocks/);assert.match(run('playbackErrorMessage(153)'),/identify/);
+}
+console.log('Checks passed: playback lifecycle, Shorts/fullscreen, counters, live discovery, key persistence/forgetting, and embed error messages.');

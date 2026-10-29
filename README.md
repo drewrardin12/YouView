@@ -2,7 +2,7 @@
 
 Your YouTube. Your channels. Nothing else.
 
-A free GitHub Pages edition of a personal approved-channel YouTube browser. Open index.html through GitHub Pages. Settings accepts a personal browser-restricted YouTube Data API key, held in session storage and sent directly to Google. No keys belong in Git commits, README text, query parameters to this site, or GitHub Pages files. Restrict your key to the YouTube Data API and the actual Pages origin using Google Cloud’s website restrictions.
+A free GitHub Pages edition of a personal approved-channel YouTube browser. Open index.html through GitHub Pages. Settings accepts a personal browser-restricted YouTube Data API key, held in session storage by default (or remembered in local storage with explicit opt-in) and sent directly to Google. No keys belong in Git commits, README text, query parameters to this site, or GitHub Pages files. Restrict your key to the YouTube Data API and the actual Pages origin using Google Cloud’s website restrictions.
 
 ## Features
 34 verified permanent channel IDs from the 36 approved names; local IndexedDB progress/history; automatic resume; less-than-three-minutes completion; persistent visible in-app player; ±10 second seeking; share YouTube URLs; per-channel older-upload pagination; first 50 playlist items and allowlist-restricted sequential playback; channel counters; watch-frequency sorting; backup export/import; chapter extraction using IrishWeegee’s verified permanent channel ID.
@@ -23,3 +23,9 @@ The player now reports loading, blocked autoplay, playback time, errors, and a r
 Short-form selections open in a full-viewport player on desktop and mobile; this does not depend on iOS granting native fullscreen. The update resets upload-counter baselines once per device, preserving watch history and progress. Settings also provides a reset button.
 
 Active streams have a separate Live now section on Home and channel Videos pages. A channel-specific official live search runs on channel entry or from Check live streams; Home prioritizes Le Batard and channels already known live. Results are allowlist-filtered and cached for 15 minutes to conserve quota. This is not exhaustive polling of all approved channels. A connected Data API key is required for live discovery.
+
+### Remembered connection and restricted videos
+
+Settings offers an opt-in Remember key on this device checkbox. A connected session key can be remembered without retyping it by checking the box and clicking Connect. Forget key clears both storage locations. Keys remain excluded from exported backups and source.
+
+Player errors distinguish creator-blocked embeds (101/150), missing client identification (153), and unavailable videos (100). Creator-blocked streams must open on YouTube; YouView does not bypass that restriction.

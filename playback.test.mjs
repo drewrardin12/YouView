@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 const source=fs.readFileSync(new URL('./index.html',import.meta.url),'utf8').match(/<script>([\s\S]*?)<\/script>/)[1];
 function harness(){
- const nodes=new Map();const node=id=>{if(!nodes.has(id))nodes.set(id,{textContent:'',value:'',classList:{hidden:false,toggle(k,v){this[k]=v},add(){},remove(){}},replaceChildren(){},append(){},addEventListener(){}});return nodes.get(id)};
+ const nodes=new Map();const node=id=>{if(!nodes.has(id))nodes.set(id,{textContent:'',value:'',classList:{hidden:false,toggle(k,v){this[k]=v},add(){},remove(){}},replaceChildren(child){this.child=child},append(){},addEventListener(){}});return nodes.get(id)};
  const timers=new Map();let tid=0;
  const context=vm.createContext({console,structuredClone,URL,URLSearchParams,crypto,Promise,Date,Math,JSON,Number,String,Map,Set,Error,Blob,queueMicrotask,sessionStorage:{getItem(){return null}},indexedDB:{open:()=>({})},navigator:{},location:{origin:'https://example.test'},document:{querySelector:node,querySelectorAll:()=>[],getElementById:()=>null,createElement:()=>({remove(){}}),head:{append(){}},addEventListener(){}},window:{addEventListener(){},scrollTo(){}},setInterval(){},setTimeout(f,ms){const id=++tid;timers.set(id,{f,ms});return id},clearTimeout(id){timers.delete(id)}});
  vm.runInContext(source,context);const run=s=>vm.runInContext(s,context);
@@ -19,10 +19,10 @@ function harness(){
  run('current.madeForKids=false;playerReady=false;saveProgress()');assert.equal(run('Object.keys(st.progress).length'),0);
 }
 {
- const{run,context}=harness();let onReady;let calls=0;
+ const{run,node,context}=harness();let onReady;let calls=0;
  const yt={PlayerState:{PLAYING:1,PAUSED:2,ENDED:0,CUED:5},Player:class{constructor(id,options){onReady=()=>options.events.onReady({target:this})}loadVideoById(){calls++}stopVideo(){}destroy(){}}};
  context.YT=yt;context.window.YT=yt;
- run('api=async()=>({video:st.videos[0]})');await run("play('aaaaaaaaaaa')");run('closePlayer()');onReady();assert.equal(calls,0,'Closing while loading prevents late hidden playback');
+ run('api=async()=>({video:st.videos[0]})');await run("play('aaaaaaaaaaa')");assert.match(node('#player-frame').child.src,/embed\/aaaaaaaaaaa\?enablejsapi=1/);assert.equal(node('#player-frame').child.referrerPolicy,'strict-origin-when-cross-origin');run('closePlayer()');onReady();assert.equal(calls,0,'Closing while loading prevents late hidden playback');
  assert.equal(run('current'),null);
 }
 {

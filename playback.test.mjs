@@ -121,4 +121,7 @@ function harness(){
  const{run}=harness();assert.equal(run("SEED.find(c=>c.name==='LeBron James').id"),'UCV9dV3DcAZWGnT2yFNKxStA');
  assert.equal(run("SEED.find(c=>c.name==='Fat Perez').id"),undefined,'Unverified channels must remain unresolved');
 }
+{
+ const{run}=harness();run("youtubeKey='fixture';st.liveDiscoveryAt=0;st.channels=[{id:'a',liveCheckedAt:100},{id:'b',liveCheckedAt:50}]");assert.equal(run('liveDiscoveryCandidate(4000000).id'),'b');run('st.liveDiscoveryAt=3999999');assert.equal(run('liveDiscoveryCandidate(4000000)'),null);run("youtubeKey=''");assert.equal(run('liveDiscoveryCandidate(9000000)'),null);
+}
 console.log('Checks passed: playback, allowlist, chapters including bracketed ranges, search, historical indexing, complete playlist ordering/duplicates, saved keys, and handoff URL parsing.');

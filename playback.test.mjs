@@ -7,7 +7,7 @@ function harness(){
  const timers=new Map();let tid=0;
  const context=vm.createContext({console,structuredClone,URL,URLSearchParams,crypto,Promise,Date,Math,JSON,Number,String,Map,Set,Error,Blob,queueMicrotask,sessionStorage:{getItem(){return null}},indexedDB:{open:()=>({})},navigator:{},location:{origin:'https://example.test'},document:{querySelector:node,querySelectorAll:()=>[],getElementById:()=>null,createElement:()=>({remove(){}}),head:{append(){}},addEventListener(){}},window:{addEventListener(){},scrollTo(){}},setInterval(){},setTimeout(f,ms){const id=++tid;timers.set(id,{f,ms});return id},clearTimeout(id){timers.delete(id)}});
  vm.runInContext(source,context);const run=s=>vm.runInContext(s,context);
- run(`render=()=>{};persist=()=>Promise.resolve();st={channels:[{id:'approved',key:'test'}],videos:[{id:'aaaaaaaaaaa',channelId:'approved',title:'A',madeForKids:false},{id:'bbbbbbbbbbb',channelId:'approved',title:'B',madeForKids:false}],progress:{},history:{}};api=async()=>({video:null});`);
+ run(`originalRender=render;render=()=>{};persist=()=>Promise.resolve();st={channels:[{id:'approved',key:'test',name:'Approved channel',category:'NBA'}],videos:[{id:'aaaaaaaaaaa',channelId:'approved',title:'A',madeForKids:false},{id:'bbbbbbbbbbb',channelId:'approved',title:'B',madeForKids:false}],progress:{},history:{}};api=async()=>({video:null});`);
  return{run,node,context,timers};
 }
 {
@@ -39,5 +39,13 @@ function harness(){
  run("st.videos[0].cachedAt=Date.now();api=async()=>{apiCall();throw Error('No key')};ensureYT=async()=>{throw Error('Stop after selection')};youtubeKey='';");
  await run("play('aaaaaaaaaaa')");assert.equal(calls,0,'Fresh approved metadata permits playback without a new API request');assert.equal(run('current.id'),'aaaaaaaaaaa');
  run("current=null;st.videos[0].cachedAt=Date.now()-86400001");await run("play('aaaaaaaaaaa')");assert.equal(calls,1,'Stale metadata must be refreshed');assert.equal(run('current'),null);
+}
+{
+ const{run,node}=harness();
+ assert.equal(run('isShortForm({duration:180})'),true);assert.equal(run('isShortForm({duration:181})'),false);
+ assert.equal(run('isShortForm({duration:0})'),false);assert.equal(run('isShortForm({duration:30,live:true})'),false);assert.equal(run('isShortForm({duration:30,wasLive:true})'),false);assert.equal(run('isShortForm({duration:30,isShort:false})'),false);
+ run("render=originalRender;route='shorts';st.videos[0].duration=30;st.videos[1].channelId='unapproved';st.videos[1].duration=20;render()");
+ assert.match(node('#main').innerHTML,/data-video="aaaaaaaaaaa"/);assert.doesNotMatch(node('#main').innerHTML,/data-video="bbbbbbbbbbb"/);
+ run("st.videos[0].duration=600;render()");assert.match(node('#main').innerHTML,/No short-form uploads found/);assert.doesNotMatch(node('#main').innerHTML,/Connect YouTube/);
 }
 console.log('Playback checks passed: completion boundary, stale-video protection, tracking exclusion, readiness, close-before-ready, request races, and retry feedback.');

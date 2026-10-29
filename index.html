@@ -27,7 +27,7 @@ case'/api/video':return{video:(await apiVideos([id]))[0]||null};
 case'/api/live':{if(!ch(id))throw Error('Channel is not approved.');const d=await yt('search',{part:'snippet',channelId:id,type:'video',eventType:'live',maxResults:50});const videos=await apiVideos((d.items||[]).map(x=>x.id?.videoId).filter(Boolean));return{videos:videos.filter(v=>v.channelId===id&&v.live)}}
 case'/api/playlists':{const d=await yt('playlists',{part:'snippet',channelId:id,maxResults:50});return{items:(d.items||[]).map(p=>({id:p.id,title:p.snippet.title}))}}
 case'/api/playlist':{const d=await yt('playlistItems',{part:'contentDetails',playlistId:id,maxResults:50});const ids=(d.items||[]).map(x=>x.contentDetails.videoId),videos=await apiVideos(ids);return{videos:ids.map(id=>videos.find(v=>v.id===id)).filter(Boolean)}}
-case'/api/chapters':{let pageToken;for(let i=0;i<5;i++){const d=await yt('commentThreads',{part:'snippet',videoId:u.searchParams.get('video'),maxResults:100,order:'relevance',textFormat:'plainText',pageToken});const comment=(d.items||[]).map(x=>x.snippet.topLevelComment.snippet).find(x=>x.authorChannelId?.value==='UCbzm6UmzlMA-Yq6v3hvEipA');if(comment)return{text:comment.textOriginal||comment.textDisplay};pageToken=d.nextPageToken;if(!pageToken)break}return{text:null}}
+case'/api/chapters':return retrieveChapterComment(u.searchParams.get('video'),u.searchParams.get('page')||undefined);
 default:throw Error('Unsupported action')}}
 
 function ch(id){return st.channels.find(c=>c.id===id)}function initials(n){return n.split(/\s+/).slice(0,2).map(s=>s[0]).join('').toUpperCase()}
@@ -126,6 +126,7 @@ async function play(id,queue=null,shortMode=route==='shorts'||(route==='channel'
  $('#youtube-link').href='https://www.youtube.com/watch?v='+id+'&t='+Math.floor(start)+'s';$('#chapters').textContent='';
  playerStatus('Loading YouTube player…');watchPlayerStart();
  if(!player)createPlayerFrame(id,start);
+ loadChapters(v);
  try{await ensureYT();if(request!==playRequest||current?.id!==id)return;
   if(player){if(playerReady)loadPending(player)}else{
    player=new YT.Player('ytplayer',{width:'100%',height:'100%',videoId:id,playerVars:{start:Math.floor(start),playsinline:1,rel:0,origin:location.origin},events:{
@@ -135,7 +136,6 @@ async function play(id,queue=null,shortMode=route==='shorts'||(route==='channel'
     onError:e=>{if(current){clearPlayerTimer();playerStatus(playbackErrorMessage(e.data),![101,150,100].includes(e.data))}}
    }});
   }
-  loadChapters(v);
  }catch(e){if(request===playRequest&&current){clearPlayerTimer();playerStatus(e.message,true)}}
 }
 let lastTick=Date.now();
@@ -155,7 +155,47 @@ $('#close-player').onclick=closePlayer;$('#minimize').onclick=()=>{saveProgress(
 $('#youtube-link').onclick=()=>{saveProgress();if(current){$('#youtube-link').href='https://www.youtube.com/watch?v='+current.id+'&t='+Math.floor(playerReady?player.getCurrentTime():st.progress[current.id]?.position||0)+'s';if(playerReady)player?.pauseVideo()}};
 $('#searchform').onsubmit=e=>{e.preventDefault();query=$('#query').value.trim();if(!['channel','history','continue'].includes(route))route='search';render()};document.addEventListener('visibilitychange',()=>{saveProgress();if(document.hidden){if(playerReady)player?.pauseVideo()}else if(route==='history'||route==='continue')render()});window.addEventListener('pagehide',()=>saveProgress());let touchY=0;document.addEventListener('touchstart',e=>{touchY=e.touches[0].clientY},{passive:true});document.addEventListener('touchend',e=>{if(scrollY===0&&e.changedTouches[0].clientY-touchY>100&&route==='home')refresh(true)},{passive:true});
 async function loadPlaylists(){if(!selected?.id){$('#playlists').innerHTML=empty('Connect this channel first','Paste its channel URL in Your channels.');return}try{const d=await api('/api/playlists?id='+selected.id);if(!$('#playlists'))return;$('#playlists').innerHTML=d.items.length?d.items.map(p=>'<div class="row"><div class="name">'+esc(p.title)+'</div><button class="pill" data-playlist="'+esc(p.id)+'">Browse</button></div>').join(''):empty('No playlists found','This channel has no public playlists.');document.querySelectorAll('[data-playlist]').forEach(b=>b.onclick=async()=>{try{const d=await api('/api/playlist?id='+b.dataset.playlist);const permitted=d.videos.filter(v=>ch(v.channelId));for(const v of permitted)if(!st.videos.some(x=>x.id===v.id))st.videos.push(v);persist();$('#playlists').innerHTML='<button class="pill red" id="play-all">Play approved videos in order</button><p class="muted">'+(d.videos.length-permitted.length)+' entries from unapproved channels excluded. Select a video to play.</p><div class="grid">'+permitted.map(card).join('')+'</div>';bind();$('#play-all').onclick=()=>{if(permitted.length)play(permitted[0].id,permitted.map(v=>v.id))}}catch(e){toast(e.message)}})}catch(e){if($('#playlists'))$('#playlists').innerHTML=empty('Playlists need the free API connection',esc(e.message))}}
-function parseChapters(text){const result=[];for(const line of text.split('\n')){const m=line.match(/(?:^|\s)(?:(\d+):)?(\d{1,2}):(\d{2})\s*[-–—:]?\s*(.+)/);if(m){const seconds=(+m[1]||0)*3600+(+m[2])*60+(+m[3]);if(!current?.duration||seconds<current.duration)result.push({seconds,title:m[4]})}}return result}
-async function loadChapters(v){let text=v.description||'',source='Description timestamps';if(ch(v.channelId)?.handle?.toLowerCase()==='lebatardshow'){try{const d=await api('/api/chapters?video='+v.id);if(d.text){text=d.text;source='@IrishWeegee timestamps'}}catch{}}if(current?.id!==v.id)return;const chapters=parseChapters(text);$('#chapters').innerHTML=chapters.length?'<div class="muted">'+source+'</div>'+chapters.map(c=>'<button data-seek="'+c.seconds+'">'+time(c.seconds)+'　'+esc(c.title)+'</button>').join(''):'';document.querySelectorAll('[data-seek]').forEach(b=>b.onclick=()=>{player?.seekTo(+b.dataset.seek,true);setTimeout(saveProgress,350)})}
+function isLeBatard(v){return v?.channelId==='UCAIZ314ffmfM4PynCR8vElw'||ch(v?.channelId)?.handle?.toLowerCase()==='lebatardshow'}
+async function preferredChapterAuthorId(){
+ if(st.chapterAuthor?.id&&Date.now()-st.chapterAuthor.at<86400000)return st.chapterAuthor.id;
+ const d=await yt('channels',{part:'id',forHandle:'IrishWeegee'});const id=d.items?.[0]?.id;if(!/^UC[\w-]{22}$/.test(id||''))throw Error('Could not verify @IrishWeegee’s YouTube channel. Try Refresh chapters.');
+ st.chapterAuthor={id,at:Date.now()};await persist();return id;
+}
+async function retrieveChapterComment(videoId,pageToken){
+ const v=st.videos.find(v=>v.id===videoId);if(!v||!ch(v.channelId)||!isLeBatard(v))throw Error('Timestamp-comment lookup is limited to approved Le Batard videos.');
+ const authorId=await preferredChapterAuthorId();let scanned=0;
+ for(let i=0;i<5;i++){
+  const d=await yt('commentThreads',{part:'snippet',videoId,maxResults:100,order:'relevance',textFormat:'plainText',pageToken});
+  for(const item of d.items||[]){scanned++;const comment=item.snippet?.topLevelComment?.snippet;if(comment?.authorChannelId?.value===authorId&&parseChapters(comment.textOriginal||comment.textDisplay||'',v.duration).length)return{text:comment.textOriginal||comment.textDisplay,commentId:item.snippet.topLevelComment.id,scanned,nextPage:null}}
+  pageToken=d.nextPageToken;if(!pageToken)break;
+ }return{text:null,scanned,nextPage:pageToken||null};
+}
+function parseChapters(text,duration=current?.duration){
+ const result=[],seen=new Set(),lines=String(text||'').split(/\r?\n/);
+ for(let i=0;i<lines.length;i++){
+  const m=lines[i].match(/(?:^|\s)(?:(\d+):)?(\d{1,2}):(\d{2})(?:\s|$)\s*[-–—:•|]?\s*(.*)/);if(!m||+m[3]>=60||m[1]&&+m[2]>=60)continue;
+  const seconds=(+m[1]||0)*3600+(+m[2])*60+(+m[3]);let title=m[4].trim();if(!title&&lines[i+1]&&!/^\s*\d+:/.test(lines[i+1]))title=lines[i+1].trim();
+  if(title&&(!duration||seconds<duration)&&!seen.has(seconds)){seen.add(seconds);result.push({seconds,title})}
+ }return result.sort((a,b)=>a.seconds-b.seconds);
+}
+function showChapterPanel(v,chapters,source,note='',nextPage=null){
+ if(current?.id!==v.id)return;const target=$('#chapters');
+ target.innerHTML='<h3>Chapters</h3>'+(source?'<div class="muted">'+esc(source)+'</div>':'')+(note?'<p role="status">'+esc(note)+'</p>':'')+(isLeBatard(v)?'<div class="toolbar"><button class="pill" id="refresh-chapters">Refresh chapters</button>'+(nextPage?'<button class="pill" id="more-chapters">Search more comments</button>':'')+'</div>':'')+chapters.map(c=>'<button data-seek="'+c.seconds+'">'+time(c.seconds)+'　'+esc(c.title)+'</button>').join('');
+ target.querySelectorAll('[data-seek]').forEach(b=>b.onclick=()=>{if(!playerReady||!playerMatchesVideo(player))return toast('Start this video inside YouView to use chapters.');player.seekTo(+b.dataset.seek,true);setTimeout(saveProgress,350)});
+ $('#refresh-chapters')?.addEventListener('click',()=>loadChapters(v,{force:true}));$('#more-chapters')?.addEventListener('click',()=>loadChapters(v,{force:true,pageToken:nextPage}));
+}
+let chapterRequest=0;
+async function loadChapters(v,{force=false,pageToken}={}){
+ const request=++chapterRequest,fallback=parseChapters(v.description,v.duration),preferred=isLeBatard(v);if(!preferred){showChapterPanel(v,fallback,'Description timestamps',fallback.length?'':'No description timestamps available.');return}
+ st.chapterCache=st.chapterCache||{};const cached=st.chapterCache[v.id];
+ if(!force&&cached&&Date.now()-cached.at<(cached.text?86400000:600000)){const chapters=cached.text?parseChapters(cached.text,v.duration):fallback;showChapterPanel(v,chapters,cached.text?'@IrishWeegee timestamps':'Description timestamps',cached.text?'':'Preferred timestamp comment not found in the comments checked so far.',cached.nextPage);return}
+ if(!youtubeKey){showChapterPanel(v,fallback,'Description timestamps','Connect your existing YouTube API key in Settings to retrieve @IrishWeegee’s comment. Video playback can use saved metadata without that connection.');return}
+ showChapterPanel(v,fallback,'Description timestamps','Looking for @IrishWeegee’s timestamp comment…');
+ try{
+  const d=await api('/api/chapters?video='+encodeURIComponent(v.id)+(pageToken?'&page='+encodeURIComponent(pageToken):''));
+  st.chapterCache[v.id]={...d,at:Date.now()};await persist();if(request!==chapterRequest||current?.id!==v.id)return;
+  const chapters=d.text?parseChapters(d.text,v.duration):fallback;showChapterPanel(v,chapters,d.text?'@IrishWeegee timestamps':'Description timestamps',d.text?'':d.nextPage?'Not found in this batch ('+d.scanned+' comments checked). Search more comments or refresh later.':'No timestamp comment from @IrishWeegee was found in the accessible comments.',d.nextPage);
+ }catch(e){if(request===chapterRequest)showChapterPanel(v,fallback,'Description timestamps','Timestamp lookup failed: '+e.message+' Use Refresh chapters to try again.')}
+}
 ready.then(async()=>{await initializeUploadCounters();render();refresh();refreshLiveForView();});
 </script></body></html>

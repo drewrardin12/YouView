@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 const source=fs.readFileSync(new URL('./index.html',import.meta.url),'utf8').match(/<script>([\s\S]*?)<\/script>/)[1];
 function harness(){
- const nodes=new Map();const node=id=>{if(!nodes.has(id))nodes.set(id,{textContent:'',value:'',classList:{hidden:false,toggle(k,v){this[k]=v},add(){},remove(){}},replaceChildren(child){this.child=child},append(){},addEventListener(){}});return nodes.get(id)};
+ const nodes=new Map();const node=id=>{if(!nodes.has(id))nodes.set(id,{textContent:'',value:'',querySelectorAll(){return[]},classList:{hidden:false,toggle(k,v){this[k]=v},add(){},remove(){}},replaceChildren(child){this.child=child},append(){},addEventListener(){}});return nodes.get(id)};
  const timers=new Map();let tid=0;
  const context=vm.createContext({console,structuredClone,URL,URLSearchParams,crypto,Promise,Date,Math,JSON,Number,String,Map,Set,Error,Blob,queueMicrotask,sessionStorage:{getItem(){return null}},indexedDB:{open:()=>({})},navigator:{},location:{origin:'https://example.test'},document:{querySelector:node,querySelectorAll:()=>[],getElementById:()=>null,createElement:()=>({remove(){}}),head:{append(){}},addEventListener(){}},window:{addEventListener(){},scrollTo(){}},setInterval(){},setTimeout(f,ms){const id=++tid;timers.set(id,{f,ms});return id},clearTimeout(id){timers.delete(id)}});
  vm.runInContext(source,context);const run=s=>vm.runInContext(s,context);
@@ -70,4 +70,18 @@ function harness(){
  run("saveKey('fixture-key',true);saveKey('fixture-key',false)");assert.equal(local.size,0,'Session-only choice removes a previously remembered key');
  assert.match(run('playbackErrorMessage(150)'),/creator blocks/);assert.match(run('playbackErrorMessage(153)'),/identify/);
 }
-console.log('Checks passed: playback lifecycle, Shorts/fullscreen, counters, live discovery, key persistence/forgetting, and embed error messages.');
+{
+ const{run,node}=harness();assert.equal(run("parseChapters('0:00 Intro\\n1:02:03 Long segment\\n5:99 Bad time\\n0:00 Duplicate',4000).length"),2);
+ run("st.channels[0].handle='LeBatardShow';current=st.videos[0];current.description='0:00 Official intro';youtubeKey=''");await run('loadChapters(current)');assert.match(node('#chapters').innerHTML,/Connect your existing/);assert.match(node('#chapters').innerHTML,/Refresh chapters/);
+ run("youtubeKey='fixture';api=async()=>{throw Error('Comments disabled')}");await run('loadChapters(current,{force:true})');assert.match(node('#chapters').innerHTML,/Comments disabled/);
+ run("api=async()=>({text:'0:00 Preferred intro\\n5:00 Second segment',scanned:1,nextPage:null})");await run('loadChapters(current,{force:true})');assert.match(node('#chapters').innerHTML,/@IrishWeegee timestamps/);assert.match(node('#chapters').innerHTML,/Second segment/);
+ run("api=async()=>{throw Error('Cache should prevent request')}");await run('loadChapters(current)');assert.doesNotMatch(node('#chapters').innerHTML,/Cache should prevent/);
+}
+{
+ const{run,context}=harness();const author='UC'+ 'a'.repeat(22);let pages=0;
+ run("st.channels[0].handle='LeBatardShow'");context.fixtureAuthor=author;
+ context.yt=async(resource,params)=>resource==='channels'?{items:[{id:author}]}:(++pages===1?{items:[{snippet:{topLevelComment:{id:'fake',snippet:{authorDisplayName:'@IrishWeegee',authorChannelId:{value:'UC'+ 'b'.repeat(22)},textOriginal:'0:00 Fake'}}}}],nextPageToken:'next'}:{items:[{snippet:{topLevelComment:{id:'real',snippet:{authorChannelId:{value:author},textOriginal:'0:00 Real intro\n4:00 Real segment'}}}}]});
+ const found=await run("retrieveChapterComment('aaaaaaaaaaa')");assert.equal(found.commentId,'real');assert.equal(pages,2,'Retrieval follows pagination and matches verified author ID');
+ context.yt=async()=>({items:[],nextPageToken:'more'});const missing=await run("retrieveChapterComment('aaaaaaaaaaa')");assert.equal(missing.nextPage,'more','A bounded scan can be continued');
+}
+console.log('Checks passed: playback, Shorts, live, key persistence, chapter parsing, verified commenter pagination, chapter cache, refresh, and visible errors.');

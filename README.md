@@ -8,7 +8,7 @@ A free GitHub Pages edition of a personal approved-channel YouTube browser. Open
 34 verified permanent channel IDs from the 36 approved names; local IndexedDB progress/history; automatic resume; less-than-three-minutes completion; persistent visible in-app player; ±10 second seeking; share YouTube URLs; per-channel older-upload pagination; first 50 playlist items and allowlist-restricted sequential playback; channel counters; watch-frequency sorting; backup export/import; chapter extraction using IrishWeegee’s verified permanent channel ID.
 
 ## Limits
-LeBron James and Fat Perez require exact URLs to disambiguate. Shorts identification/swiping, exhaustive live discovery, playlist pagination, automatic cloud sync, and raster iPhone icon packaging remain incomplete. Search covers loaded metadata; load older uploads on channel pages to extend it. Comment scans check up to 500 top-level comments and do not guarantee finding the desired comment. Browser storage can be cleared; export backups. Actual iPhone playback has not been tested yet. Made-for-kids or unknown-status videos are not tracked.
+LeBron James and Fat Perez require exact URLs to disambiguate. Shorts identification/swiping, exhaustive live discovery, playlist pagination, automatic cloud sync, and raster iPhone icon packaging remain incomplete. Search covers loaded metadata; load older uploads on channel pages to extend it. Each comment scan checks up to 500 top-level comments; Search more comments continues pagination. A match is not guaranteed. Browser storage can be cleared; export backups. Actual iPhone playback has not been tested yet. Made-for-kids or unknown-status videos are not tracked.
 
 YouTube’s official player controls, branding, links, and related videos remain intact. No background player, stream extraction, audio extraction, download, or recommendation masking. Open in YouTube hands playback to the official service for supported Premium/background/PiP behavior; progress there cannot sync back.
 
@@ -29,3 +29,7 @@ Active streams have a separate Live now section on Home and channel Videos pages
 Settings offers an opt-in Remember key on this device checkbox. A connected session key can be remembered without retyping it by checking the box and clicking Connect. Forget key clears both storage locations. Keys remain excluded from exported backups and source.
 
 Player errors distinguish creator-blocked embeds (101/150), missing client identification (153), and unavailable videos (100). Creator-blocked streams must open on YouTube; YouView does not bypass that restriction.
+
+### Visible timestamp chapters
+
+Le Batard videos now always show a Chapters panel with lookup status and Refresh chapters. The preferred commenter is resolved through YouTube channels.forHandle and matched by permanent author channel ID, never display name. Successful comments are cached for 24 hours; unsuccessful scans for 10 minutes. Search more comments continues beyond each 500-comment batch. API errors and missing connections are visible; description timestamps remain the fallback.

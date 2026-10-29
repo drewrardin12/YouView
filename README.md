@@ -72,4 +72,4 @@ Version 1.4.4 CLEAN: verified @lebron against YouTube’s official launch announ
 - ★★★★ Shorts: exact identification limits and iPhone gesture testing.
 - ★★★★★ Cross-device sync: backend, authentication, reconciliation, device tests. Schema only is prepared.
 - ★★★★★ Native iPhone/PiP investigation; outcome uncertain.
-Design handoff and icon/design work are separate and excluded. Build words should be playful rather than feature names; current release is 1.4.9 PAPAYA.
+Design handoff and icon/design work are separate and excluded. Build words should be playful rather than feature names; current release is 1.4.9 POPCORN.

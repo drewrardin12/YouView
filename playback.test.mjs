@@ -139,4 +139,7 @@ function harness(){
  old.options.events.onStateChange({target:old.target,data:0});assert.equal(run('st.progress.aaaaaaaaaaa.finished'),false,'A destroyed player cannot finish the newly reopened same video');
  run('player.getCurrentTime=()=>-5;saveProgress()');assert.equal(run('st.progress.aaaaaaaaaaa.position'),120,'Invalid player readings cannot overwrite saved progress');
 }
+{
+ const{run}=harness();run("st.videos.forEach(v=>v.duration=30);shortsSequence=['aaaaaaaaaaa','bbbbbbbbbbb'];current=st.videos[0]");assert.equal(run('nextShortId(1)'),'bbbbbbbbbbb');assert.equal(run('nextShortId(-1)'),null);run('st.videos[1].isShort=false');assert.equal(run('nextShortId(1)'),null);run("st.videos[1].isShort=true;st.videos[1].channelId='foreign'");assert.equal(run('nextShortId(1)'),null);
+}
 console.log('Checks passed: playback, allowlist, chapters including bracketed ranges, search, historical indexing, complete playlist ordering/duplicates, saved keys, and handoff URL parsing.');

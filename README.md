@@ -47,3 +47,5 @@ The chapter parser now accepts IrishWeegee’s bracketed start/end ranges and se
 Regular videos request native iOS fullscreen playback (`playsinline=0`); Shorts retain inline playback (`playsinline=1`). Switching between these modes rebuilds the player while preserving saved progress. Fullscreen and native media controls remain enabled. Actual PiP/AirPlay availability still needs verification on an iPhone.
 
 Simplicity comparison: regular videos now receive a fresh autoplaying embed per selection. The IFrame API attaches for progress tracking without loading the initial video a second time. This follows Simplicity’s initial embed flow while retaining verified progress handling; iPhone native PiP/AirPlay remains unverified.
+
+Version 1.4.2 IPHONE adds an explicit iPhone player option that uses Simplicity’s exact basic embed URL and permissions without the IFrame API. It remains inside YouView and starts from saved progress. Ongoing progress, custom skip buttons, and chapter seeking are unavailable in that mode; Return to tracked player restores those features. Closing removes the iframe to stop playback. Native controls still require verification on iPhone.

@@ -43,3 +43,5 @@ Channel playlist lists support further pages. Playlist entries preserve order an
 PiP and casting redirect buttons have been removed at the user’s request. Native embedded-player and browser controls remain available where supported. The official YouTube IFrame API does not expose custom PiP, AirPlay, or Cast methods, so YouView does not present nonfunctional substitutes.
 
 The chapter parser now accepts IrishWeegee’s bracketed start/end ranges and seeks to each range’s start. Existing negative chapter caches are invalidated for the parser update. Paste an approved YouTube video link in search to open it directly; an existing unfinished position takes precedence over a link timestamp.
+
+Regular videos request native iOS fullscreen playback (`playsinline=0`); Shorts retain inline playback (`playsinline=1`). Switching between these modes rebuilds the player while preserving saved progress. Fullscreen and native media controls remain enabled. Actual PiP/AirPlay availability still needs verification on an iPhone.

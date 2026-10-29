@@ -103,4 +103,12 @@ function harness(){
  const{run,context}=harness();let advanced=[];context.YT={PlayerState:{PLAYING:1,PAUSED:2,ENDED:0,CUED:5}};context.capture=(...args)=>advanced.push(args);
  run("current=st.videos[0];playerReady=true;transitioning=false;player={getVideoUrl:()=> 'https://www.youtube.com/watch?v=aaaaaaaaaaa',getDuration:()=>600,getCurrentTime:()=>600,getPlayerState:()=>0};playbackQueue=['aaaaaaaaaaa','bbbbbbbbbbb','aaaaaaaaaaa'];playbackQueueIndex=2;play=(...args)=>capture(...args);playerStateChanged({data:0,target:player})");assert.equal(advanced.length,0,'Last duplicate playlist entry must not loop back');run('playbackQueueIndex=0;playerStateChanged({data:0,target:player})');assert.equal(advanced[0][0],'bbbbbbbbbbb');assert.equal(advanced[0][4],1);
 }
+{
+ const{run,node,context}=harness();let options;let destroyed=0;
+ context.YT={PlayerState:{PLAYING:1,PAUSED:2,ENDED:0,CUED:5},Player:class{constructor(id,o){options=o}destroy(){destroyed++}loadVideoById(){}stopVideo(){}}};context.window.YT=context.YT;
+ run('api=async()=>({video:st.videos[0]})');await run("play('aaaaaaaaaaa',null,false)");
+ assert.equal(new URL(node('#player-frame').child.src).searchParams.get('playsinline'),'0');assert.equal(options.playerVars.playsinline,0);assert.equal(options.playerVars.fs,1);
+ await run("play('aaaaaaaaaaa',null,true)");assert.equal(destroyed,1);assert.equal(new URL(node('#player-frame').child.src).searchParams.get('playsinline'),'1');assert.equal(options.playerVars.playsinline,1);
+ await run("play('aaaaaaaaaaa',null,false)");assert.equal(destroyed,2);assert.equal(options.playerVars.playsinline,0);
+}
 console.log('Checks passed: playback, allowlist, chapters including bracketed ranges, search, historical indexing, complete playlist ordering/duplicates, saved keys, and handoff URL parsing.');

@@ -48,4 +48,17 @@ function harness(){
  assert.match(node('#main').innerHTML,/data-video="aaaaaaaaaaa"/);assert.doesNotMatch(node('#main').innerHTML,/data-video="bbbbbbbbbbb"/);
  run("st.videos[0].duration=600;render()");assert.match(node('#main').innerHTML,/No short-form uploads found/);assert.doesNotMatch(node('#main').innerHTML,/Connect YouTube/);
 }
-console.log('Playback checks passed: completion boundary, stale-video protection, tracking exclusion, readiness, close-before-ready, request races, and retry feedback.');
+{
+ const{run,node}=harness();run("st.channels[0].watchSeconds=90;st.history.keep={at:123};st.progress.keep={position:45};resetUploadCounters()");
+ assert.equal(run('st.uploadCounterResetVersion'),1);assert.ok(run('st.channels[0].lastVisit')>0);assert.equal(run('st.channels[0].watchSeconds'),90);assert.equal(run('st.progress.keep.position'),45);
+ const baseline=run('st.channels[0].lastVisit');run('initializeUploadCounters()');assert.equal(run('st.channels[0].lastVisit'),baseline);
+ run("api=async()=>({video:st.videos[0]});ensureYT=async()=>{throw Error('Test boundary')};route='shorts'");await run("play('aaaaaaaaaaa')");assert.equal(node('#player-shell').classList['shorts-full'],true);
+ run("route='home'");await run("play('aaaaaaaaaaa')");assert.equal(node('#player-shell').classList['shorts-full'],false);
+}
+{
+ const{run}=harness();run("youtubeKey='test';st.videos[0].live=true;api=async()=>({videos:[{id:'ccccccccccc',channelId:'approved',title:'Live',live:true},{id:'ddddddddddd',channelId:'foreign',live:true}]})");
+ await run('refreshLiveChannel(st.channels[0],true)');assert.equal(run("st.videos.find(v=>v.id==='aaaaaaaaaaa').live"),false);assert.equal(run("st.videos.filter(v=>v.id==='ccccccccccc').length"),1);assert.equal(run("st.videos.some(v=>v.channelId==='foreign')"),false);
+ run("api=async()=>{throw Error('Should be cached')}");await run('refreshLiveChannel(st.channels[0])');assert.equal(run('st.channels[0].liveError'),undefined);
+ run("api=async()=>{throw Error('Quota failure')}");await run('refreshLiveChannel(st.channels[0],true)');assert.equal(run('st.channels[0].liveError'),'Quota failure');assert.equal(run("st.videos.find(v=>v.id==='ccccccccccc').live"),true);
+}
+console.log('Checks passed: playback lifecycle, Shorts filtering/fullscreen, counter reset, live discovery, allowlist, deduplication, caching, and failure preservation.');

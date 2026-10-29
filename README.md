@@ -17,3 +17,9 @@ GitHub Pages: main branch, root directory. No build step, dependencies, or paid 
 
 ## Playback reliability
 The player now reports loading, blocked autoplay, playback time, errors, and a retry action outside the official iframe. Initialization is guarded against late playback after closing, rapid selection races, and saving a previous video’s time under a new video. Run `node playback.test.mjs` for the lifecycle and progress checks. Desktop Chrome tests verified real playback, skip controls, mini-player navigation, and progress retained across reload; iPhone verification remains pending.
+
+### Full-screen Shorts, counter reset, and live discovery
+
+Short-form selections open in a full-viewport player on desktop and mobile; this does not depend on iOS granting native fullscreen. The update resets upload-counter baselines once per device, preserving watch history and progress. Settings also provides a reset button.
+
+Active streams have a separate Live now section on Home and channel Videos pages. A channel-specific official live search runs on channel entry or from Check live streams; Home prioritizes Le Batard and channels already known live. Results are allowlist-filtered and cached for 15 minutes to conserve quota. This is not exhaustive polling of all approved channels. A connected Data API key is required for live discovery.

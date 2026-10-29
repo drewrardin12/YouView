@@ -14,3 +14,6 @@ YouTube’s official player controls, branding, links, and related videos remain
 
 ## Hosting
 GitHub Pages: main branch, root directory. No build step, dependencies, or paid backend. All app logic lives in index.html; icon.svg and manifest.webmanifest are companion assets.
+
+## Playback reliability
+The player now reports loading, blocked autoplay, playback time, errors, and a retry action outside the official iframe. Initialization is guarded against late playback after closing, rapid selection races, and saving a previous video’s time under a new video. Run `node playback.test.mjs` for the lifecycle and progress checks. Desktop Chrome tests verified real playback, skip controls, mini-player navigation, and progress retained across reload; iPhone verification remains pending.

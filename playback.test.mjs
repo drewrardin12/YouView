@@ -131,4 +131,12 @@ function harness(){
 {
  const{run,context}=harness();let finish;context.delayed=new Promise(r=>finish=r);run("youtubeKey='fixture';st.channels[0].nextPage='old';api=()=>delayed");const pending=run('indexOlderUploads()');run('indexJob++;historyIndex.running=false');finish({videos:[],nextPage:'late'});await pending;assert.equal(run('st.channels[0].nextPage'),'old','Cancelled responses must not overwrite a newer indexing cursor');
 }
+{
+ const{run,context}=harness();let latest,created=0,destroyed=0;
+ context.YT={PlayerState:{PLAYING:1,PAUSED:2,ENDED:0,CUED:5},Player:class{constructor(id,o){created++;latest={target:this,options:o}}getVideoUrl(){return 'https://www.youtube.com/watch?v=aaaaaaaaaaa'}getPlayerState(){return 1}getCurrentTime(){return 120}getDuration(){return 600}destroy(){destroyed++}stopVideo(){}}};context.window.YT=context.YT;
+ run('api=async()=>({video:st.videos[0]})');await run("play('aaaaaaaaaaa')");const old=latest;run('closePlayer()');await run("play('aaaaaaaaaaa')");assert.equal(created,2,'Reopening after close during initialization creates a fresh player');assert.equal(destroyed,1);
+ latest.options.events.onReady({target:latest.target});assert.equal(run('transitioning'),false,'Already-playing native video enables saving immediately on API readiness');assert.equal(run('st.progress.aaaaaaaaaaa.position'),120);
+ old.options.events.onStateChange({target:old.target,data:0});assert.equal(run('st.progress.aaaaaaaaaaa.finished'),false,'A destroyed player cannot finish the newly reopened same video');
+ run('player.getCurrentTime=()=>-5;saveProgress()');assert.equal(run('st.progress.aaaaaaaaaaa.position'),120,'Invalid player readings cannot overwrite saved progress');
+}
 console.log('Checks passed: playback, allowlist, chapters including bracketed ranges, search, historical indexing, complete playlist ordering/duplicates, saved keys, and handoff URL parsing.');

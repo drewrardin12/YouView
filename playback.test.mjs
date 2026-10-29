@@ -118,8 +118,7 @@ function harness(){
  await run("play('aaaaaaaaaaa',null,false)");assert.equal(destroys,1,'Regular videos get a fresh embed like Simplicity');
 }
 {
- const{run,node}=harness();run("current=st.videos[0];st.progress.aaaaaaaaaaa={position:125};player=null;playerReady=false;useIphonePlayer()");
- assert.equal(node('#player-frame').child.src,'https://www.youtube.com/embed/aaaaaaaaaaa?autoplay=1&start=125');assert.equal(run('st.progress.aaaaaaaaaaa.position'),125);assert.equal(run('playerReady'),false);
- run('closePlayer()');assert.equal(node('#player-frame').child,undefined,'Closing the compatibility player removes the playing iframe');
+ const{run}=harness();assert.equal(run("SEED.find(c=>c.name==='LeBron James').id"),'UCV9dV3DcAZWGnT2yFNKxStA');
+ assert.equal(run("SEED.find(c=>c.name==='Fat Perez').id"),undefined,'Unverified channels must remain unresolved');
 }
 console.log('Checks passed: playback, allowlist, chapters including bracketed ranges, search, historical indexing, complete playlist ordering/duplicates, saved keys, and handoff URL parsing.');

@@ -124,4 +124,11 @@ function harness(){
 {
  const{run}=harness();run("youtubeKey='fixture';st.liveDiscoveryAt=0;st.channels=[{id:'a',liveCheckedAt:100},{id:'b',liveCheckedAt:50}]");assert.equal(run('liveDiscoveryCandidate(4000000).id'),'b');run('st.liveDiscoveryAt=3999999');assert.equal(run('liveDiscoveryCandidate(4000000)'),null);run("youtubeKey=''");assert.equal(run('liveDiscoveryCandidate(9000000)'),null);
 }
+{
+ const{run,context}=harness();let calls=0;context.repeat=()=>{calls++;return {videos:[],nextPage:'same'}};
+ run("youtubeKey='fixture';st.channels[0].nextPage='same';api=async()=>repeat();query='test'");await run('indexOlderUploads()');assert.equal(calls,1,'Repeated upload cursors must not burn 500 API requests');assert.equal(run('historyIndex.errors'),1);
+}
+{
+ const{run,context}=harness();let finish;context.delayed=new Promise(r=>finish=r);run("youtubeKey='fixture';st.channels[0].nextPage='old';api=()=>delayed");const pending=run('indexOlderUploads()');run('indexJob++;historyIndex.running=false');finish({videos:[],nextPage:'late'});await pending;assert.equal(run('st.channels[0].nextPage'),'old','Cancelled responses must not overwrite a newer indexing cursor');
+}
 console.log('Checks passed: playback, allowlist, chapters including bracketed ranges, search, historical indexing, complete playlist ordering/duplicates, saved keys, and handoff URL parsing.');

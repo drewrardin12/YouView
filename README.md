@@ -33,3 +33,13 @@ Player errors distinguish creator-blocked embeds (101/150), missing client ident
 ### Visible timestamp chapters
 
 Le Batard videos now always show a Chapters panel with lookup status and Refresh chapters. The preferred commenter is resolved through YouTube channels.forHandle and matched by permanent author channel ID, never display name. Successful comments are cached for 24 hours; unsuccessful scans for 10 minutes. Search more comments continues beyond each 500-comment batch. API errors and missing connections are visible; description timestamps remain the fallback.
+
+### Older search, full playlists, and playback handoff
+
+Search normalizes punctuation/accents, ranks partial matches, and can progressively index older upload pages from approved channels. Each search checks one older page per relevant channel automatically; Search older uploads continues with up to 500 pages per run and preserves the cursor for another run. Stop indexing pauses it. Channel-specific YouTube search adds historical results with pagination. This is metadata search, not transcript or full semantic search.
+
+Channel playlist lists support further pages. Playlist entries preserve order and duplicates while excluding unavailable or unapproved entries. Load entire playlist and Play playlist follow all remaining pages; playback tracks queue position so repeated video IDs do not loop incorrectly. Leaving the playlist view stops further page loading after the current request.
+
+The player offers explicitly labeled PiP in YouTube and AirPlay / Cast in YouTube handoff links. These carry the current time and pause the embedded player; they are not custom native PiP or casting implementations, and external progress cannot sync back. Browser-supported native player controls remain available.
+
+The chapter parser now accepts IrishWeegee’s bracketed start/end ranges and seeks to each range’s start. Existing negative chapter caches are invalidated for the parser update. Paste an approved YouTube video link in search to open it directly; an existing unfinished position takes precedence over a link timestamp.

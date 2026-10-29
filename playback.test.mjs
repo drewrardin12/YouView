@@ -84,4 +84,23 @@ function harness(){
  const found=await run("retrieveChapterComment('aaaaaaaaaaa')");assert.equal(found.commentId,'real');assert.equal(pages,2,'Retrieval follows pagination and matches verified author ID');
  context.yt=async()=>({items:[],nextPageToken:'more'});const missing=await run("retrieveChapterComment('aaaaaaaaaaa')");assert.equal(missing.nextPage,'more','A bounded scan can be continued');
 }
-console.log('Checks passed: playback, Shorts, live, key persistence, chapter parsing, verified commenter pagination, chapter cache, refresh, and visible errors.');
+{
+ const{run}=harness();const chapters=run("parseChapters('[0:00-3:35] On Standby\\n[3:36 - 7:36] Shadow Show\\n[1:39:57–1:58:35] Pat McAfee response',12000)");assert.equal(chapters.length,3);assert.equal(chapters[1].seconds,216);assert.equal(chapters[2].seconds,5997);assert.equal(chapters[0].title,'On Standby');
+ assert.ok(run("searchScore({title:'Cooper Flagg big win',description:''},'cooper highlights')")>0);assert.equal(run("searchScore({title:'Golf match'},'packers injury')"),0);
+ assert.ok(run("searchScore({title:'Café golf',description:''},'cafe golf')")>0);
+ assert.equal(run("parseVideoUrl('https://www.youtube.com/watch?v=IX9Dv4cBUKg&t=10577s').start"),10577);assert.equal(run("parseVideoUrl('https://youtu.be/IX9Dv4cBUKg?t=2h3m').start"),7380);assert.equal(run("parseVideoUrl('https://youtube.com.evil.test/watch?v=IX9Dv4cBUKg')"),null);
+}
+{
+ const{run,context}=harness();let pages=0;run("youtubeKey='fixture';st.channels[0].nextPage='older'");context.api=async()=>++pages===1?{videos:[{id:'ccccccccccc',channelId:'approved',title:'Old match'},{id:'ddddddddddd',channelId:'foreign',title:'Excluded'}],nextPage:'last'}:{videos:[{id:'eeeeeeeeeee',channelId:'approved',title:'Oldest match'}],nextPage:null};
+ await run('indexOlderUploads(2)');assert.equal(pages,2);assert.equal(run('st.channels[0].nextPage'),null);assert.equal(run("st.videos.some(v=>v.channelId==='foreign')"),false);assert.equal(run('historyIndex.added'),2);
+}
+{
+ const{run,context}=harness();let pages=0;run("route='channel';tab='Playlists';selected=st.channels[0];playlistView={channelId:'approved',items:[],loaded:true};playlistView.active={id:'playlist',title:'Test',entries:[],excluded:0,started:false,nextPage:undefined,loading:false,loadingAll:false,seenPages:new Set()}");
+ const a=run('st.videos[0]'),b=run('st.videos[1]');context.api=async()=>++pages===1?{videos:[a,{id:'foreign',channelId:'nope'}],entryCount:3,nextPage:'next'}:{videos:[b,a],entryCount:2,nextPage:null};
+ assert.equal(await run('loadEntirePlaylist(playlistView,playlistView.active)'),true);assert.equal(pages,2);assert.equal(run("playlistView.active.entries.map(v=>v.id).join(',')"),'aaaaaaaaaaa,bbbbbbbbbbb,aaaaaaaaaaa');assert.equal(run('playlistView.active.excluded'),2);
+}
+{
+ const{run,context}=harness();let advanced=[];context.YT={PlayerState:{PLAYING:1,PAUSED:2,ENDED:0,CUED:5}};context.capture=(...args)=>advanced.push(args);
+ run("current=st.videos[0];playerReady=true;transitioning=false;player={getVideoUrl:()=> 'https://www.youtube.com/watch?v=aaaaaaaaaaa',getDuration:()=>600,getCurrentTime:()=>600,getPlayerState:()=>0};playbackQueue=['aaaaaaaaaaa','bbbbbbbbbbb','aaaaaaaaaaa'];playbackQueueIndex=2;play=(...args)=>capture(...args);playerStateChanged({data:0,target:player})");assert.equal(advanced.length,0,'Last duplicate playlist entry must not loop back');run('playbackQueueIndex=0;playerStateChanged({data:0,target:player})');assert.equal(advanced[0][0],'bbbbbbbbbbb');assert.equal(advanced[0][4],1);
+}
+console.log('Checks passed: playback, allowlist, chapters including bracketed ranges, search, historical indexing, complete playlist ordering/duplicates, saved keys, and handoff URL parsing.');

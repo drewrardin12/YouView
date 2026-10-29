@@ -61,3 +61,15 @@ Version 1.4.4 CLEAN: verified @lebron against YouTube’s official launch announ
 1.4.7 RESUME: closing always tears down the player, including while loading; reopening initializes a clean instance. Stale state events from a destroyed instance cannot affect the same reopened video. If native playback has already started when the API attaches, tracking starts immediately. Invalid position readings are ignored. Actual iPhone background/termination behavior still requires device verification.
 
 1.4.8 SHORTS: previous/next and vertical swipe gestures on the labeled Shorts navigation strip outside the official iframe. Sequences follow the current channel/category/search scope and recheck the allowlist. Not a Short corrects false positives. Classification remains a duration-based approximation; swipes inside YouTube’s cross-origin video frame cannot be intercepted by YouView.
+
+## Remaining functional work — estimated ChatGPT usage, low to high
+- ★ Verify the unresolved Fat Perez channel (exact personal channel still unverified).
+- ★★ Startup splash/loading gate: hold Home until initial cached-state load and refresh finish, with a timeout/offline fallback and retry; avoid showing the old feed then replacing it seconds later. Not implemented.
+- ★★ Playlist follow-up/device validation.
+- ★★½ Livestream follow-up/device validation.
+- ★★★ Historical search follow-up.
+- ★★★½ Playback reliability/device validation.
+- ★★★★ Shorts: exact identification limits and iPhone gesture testing.
+- ★★★★★ Cross-device sync: backend, authentication, reconciliation, device tests. Schema only is prepared.
+- ★★★★★ Native iPhone/PiP investigation; outcome uncertain.
+Design handoff and icon/design work are separate and excluded. Build words should be playful rather than feature names; current release is 1.4.9 PAPAYA.

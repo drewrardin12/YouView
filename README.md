@@ -141,3 +141,12 @@ A compact row directly below the official video provides rewind 10 seconds, togg
 
 ## 1.11.5 CLOSE-UP
 Removes the profile/avatar button beside header Search, and removes the Playlists/Live cards from You/Library. The supplied profile photo is prepared locally; its upload awaits explicit approval to place it in the public GitHub repository. Continue Watching, History and Settings remain in the profile, and channel-specific playlist/live access remains available.
+
+## 1.12.0 SILK — iOS interaction pass
+- UI navigation snapshots restore each tab's scroll, horizontal rails, search text, filters and ordering. A contextual back control and browser history navigation restore previous screens; deleted channels fall back safely. The player remains outside the replaced page DOM.
+- Short, reduced-motion-aware screen transitions, instant pressed feedback and a mini-player layout animation use transforms/opacity without recreating the iframe. This is still a web app, not native UIKit navigation.
+- Video action menus open as native HTML-dialog bottom sheets with a dimmed backdrop, Cancel, Escape/system cancellation, focus return and handle swipe dismissal. Existing commands are reused; playback controls are not covered by invisible gesture overlays.
+- Refresh start updates status without rebuilding the page. While reading a scrolled Home feed, completed upload/live refreshes offer Show updates instead of inserting cards above the user. Pull-to-refresh has pull/release feedback. Same-screen updates preserve scroll, rail positions and an actively edited input's value/selection.
+- Safe-area-aware translucent bars, touch-sized controls, grouped surfaces, stable image geometry, asynchronous image decoding and offscreen card rendering improve responsiveness. Reduced Motion and reduced-transparency styles are respected where supported. No haptics/native PiP claims are made.
+- The localized corner glass/glint opacity components are increased by exactly 25% (.23→.2875, .76→.95, .13→.1625); the existing freshness and watched-dimming rules remain.
+The other chat's Shorts/mini-player refinements are retained. Automated checks cover navigation restoration, deleted channels, bottom-sheet action dispatch, quiet refresh, approval boundaries, saved progress and sync regressions. Browser/device visual and gesture verification remains pending. Screen markup still rebuilds for data-driven updates; this pass preserves interaction state rather than claiming a complete framework migration.

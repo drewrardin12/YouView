@@ -107,3 +107,6 @@ Automated checks cover allowlisting, chronological ordering, carousel counter is
 
 ## 1.9.1 FRESH TAKE
 New-upload indicators are plain red dots without numbers. A one-time reset on each device's first launch of this version clears existing upload indicators; only uploads published after that reset can light them again. Channel visits still clear the dot. LIVE badges, watch history and saved progress are preserved.
+
+## 1.9.2 TITLE CARD
+League Gothic is the default throughout the app, including inherited form controls. Font files are self-hosted and preloaded; the SIL Open Font License is included in fonts/OFL.txt.

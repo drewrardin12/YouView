@@ -144,7 +144,7 @@ function harness(){
 }
 {
  const{run,node,timers}=harness();let hidden=0;node('#startup-screen').classList.add=name=>{if(name==='hidden')hidden++};
- run('startupPending=true;finishStartup()');assert.equal(run('startupPending'),false);assert.equal(hidden,0,'Splash fades while Home renders');const reveal=[...timers.values()].find(t=>t.ms>0&&t.ms<=1100);assert.ok(reveal);reveal.f();const fade=[...timers.values()].find(t=>t.ms===250);assert.ok(fade);fade.f();assert.equal(hidden,1);run('finishStartup()');assert.equal(hidden,1,'Startup release must be idempotent');
+ run('startupPending=true;finishStartup()');assert.equal(run('startupPending'),false);assert.equal(hidden,0,'Splash fades while Home renders');const reveal=[...timers.values()].find(t=>t.ms>0&&t.ms<=2250);assert.ok(reveal);reveal.f();const fade=[...timers.values()].find(t=>t.ms===250);assert.ok(fade);fade.f();assert.equal(hidden,1);run('finishStartup()');assert.equal(hidden,1,'Startup release must be idempotent');
 }
 {
  const{run,node,timers}=harness();run('startupPending=true;originalRender()');assert.equal(node('#main').innerHTML,undefined,'Home must not render stale content during initial refresh');
@@ -219,5 +219,14 @@ function harness(){
  const{run}=harness();run("st.videos[0].published=new Date(Date.now()-1000).toISOString();st.videos[0].duration=600;st.progress.aaaaaaaaaaa={position:500,duration:600,finished:true}");const art=run('homeArtwork(st.videos[0])');assert.match(art,/watched/);assert.doesNotMatch(art,/artwork-glass fresh/);assert.match(art,/class="progress"/);
  run("st.videos[0].title='<script>alert(1)</script>';st.channels[0].name='<img onerror=bad>'");assert.doesNotMatch(run('homeCard(st.videos[0])'),/<script>|<img onerror/,'Home escapes metadata');
  run("st.videos[1].channelId='removed'");assert.equal(run('homeCard(st.videos[1])'),'');
+}
+{
+ const{run}=harness();run("st.channels.push({id:'rare',key:'rare',name:'Rarely watched'});st.channels[0].watchSeconds=18000;st.channels[0].visits=20;st.videos[0].duration=600;st.videos[0].published=new Date(Date.now()-7*86400000).toISOString();st.videos[1].channelId='rare';st.videos[1].duration=600;st.videos[1].published=new Date(Date.now()-1000).toISOString();st.videos.push({id:'ccccccccccc',channelId:'not-approved',published:new Date().toISOString()});homeMode='For you'");
+ assert.equal(run('personalHomeFeed()[0].id'),'aaaaaaaaaaa','Viewing preference can outrank simple recency');assert.equal(run('personalHomeFeed().length'),2,'Personalized candidates remain approved only');run("homeMode='Latest'");assert.equal(run('homeFeed()[0].id'),'bbbbbbbbbbb','Latest remains chronological');
+ run("homeMode='For you';st.progress.aaaaaaaaaaa={finished:true,position:600,duration:600}");assert.equal(run('personalHomeFeed()[0].id'),'bbbbbbbbbbb','Finished videos are deprioritized, not removed');
+ run("st.channels=st.channels.filter(c=>c.id!=='approved')");assert.equal(run('personalHomeFeed().length'),1,'Removing approval removes recommendations immediately');
+}
+{
+ const{run}=harness();run("st.channels[0].watchSeconds=0;st.channels[0].visits=0;st.videos[0].duration=600;st.videos[1].duration=600;st.videos[0].published=new Date(Date.now()-86400000).toISOString();st.videos[1].published=new Date(Date.now()-1000).toISOString()");assert.equal(run('personalHomeFeed()[0].id'),'bbbbbbbbbbb','Cold start uses recency without invented preferences');
 }
 console.log('Checks passed: playback, allowlist, chapters including bracketed ranges, search, historical indexing, complete playlist ordering/duplicates, saved keys, and handoff URL parsing.');

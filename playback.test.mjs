@@ -229,4 +229,11 @@ function harness(){
 {
  const{run}=harness();run("st.channels[0].watchSeconds=0;st.channels[0].visits=0;st.videos[0].duration=600;st.videos[1].duration=600;st.videos[0].published=new Date(Date.now()-86400000).toISOString();st.videos[1].published=new Date(Date.now()-1000).toISOString()");assert.equal(run('personalHomeFeed()[0].id'),'bbbbbbbbbbb','Cold start uses recency without invented preferences');
 }
+{
+ const{run,node}=harness();run("st.channels.push({id:'rare',key:'rare',name:'Rare'});st.channels[0].watchSeconds=18000;st.channels[0].visits=20;st.videos[0].duration=600;st.videos[0].published=new Date(Date.now()-7*86400000).toISOString();st.videos[1].channelId='rare';st.videos[1].duration=600;st.videos[1].published=new Date(Date.now()-1000).toISOString();route='home';category='All';homeMode='For you';originalRender()");
+ let feed=node('#main').innerHTML.split('id="latest-feed"')[1];assert.ok(feed.indexOf('data-video="aaaaaaaaaaa"')<feed.indexOf('data-video="bbbbbbbbbbb"'),'Rendered For you must use personalized order');
+ assert.match(feed,/aria-label="For you"[^>]*>[\s\S]*?#smile/);assert.match(feed,/aria-label="Latest"[^>]*>[\s\S]*?#refresh/);assert.doesNotMatch(feed,/>For you<\/button>|>Latest<\/button>/,'Mode controls have icons, with accessible names');
+ run("homeMode='Latest';originalRender()");feed=node('#main').innerHTML.split('id="latest-feed"')[1];assert.ok(feed.indexOf('data-video="bbbbbbbbbbb"')<feed.indexOf('data-video="aaaaaaaaaaa"'),'Rendered Latest must stay chronological');
+ run("homeMode='For you';category='NBA';originalRender()");feed=node('#main').innerHTML.split('id="latest-feed"')[1];assert.match(feed,/data-video="aaaaaaaaaaa"/);assert.doesNotMatch(feed,/data-video="bbbbbbbbbbb"/,'Category filter applies after personalized ordering');
+}
 console.log('Checks passed: playback, allowlist, chapters including bracketed ranges, search, historical indexing, complete playlist ordering/duplicates, saved keys, and handoff URL parsing.');

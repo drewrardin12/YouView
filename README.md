@@ -104,3 +104,6 @@ Automated state/markup and regression checks pass. Browser visual QA and device 
 - Channels: stable centered preview, angled neighbors, swipe/button navigation, quick icon selection, name search and recent uploads; preview selection does not clear new-upload counters. Full channel entry does. Existing add/remove/category tools remain in an expandable management area.
 - Responsive finish: mobile/iPad/desktop rules, landscape Shorts layout, safe-area spacing, readable form fields, focus indicators, touch targets and reduced-motion handling. No new image concepts or replacement branding were generated.
 Automated checks cover allowlisting, chronological ordering, carousel counter isolation, grouped search, scoped Shorts, player tabs and existing playback/sync regressions. Browser visual review and physical iPhone/iPad/Mac checks remain pending; responsive rules are implemented but not a claim of device-tested reference fidelity.
+
+## 1.9.1 FRESH TAKE
+New-upload indicators are plain red dots without numbers. A one-time reset on each device's first launch of this version clears existing upload indicators; only uploads published after that reset can light them again. Channel visits still clear the dot. LIVE badges, watch history and saved progress are preserved.

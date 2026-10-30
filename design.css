@@ -33,3 +33,4 @@ main{min-width:0}img{max-width:100%}.row .name,.player-identity,.section-heading
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 /* Keep the selected channel centered, including at either end of the collection. */
 @media(min-width:701px){.channel-carousel{position:relative}.channel-carousel .network-card.center{flex-basis:38%;margin:auto}.channel-carousel .network-card.previous,.channel-carousel .network-card.following{position:absolute;top:24px;width:28%}.channel-carousel .network-card.previous{left:0}.channel-carousel .network-card.following{right:0}}
+.bubble .badge.upload-dot{width:10px;height:10px;min-width:10px;padding:0;border-radius:50%;right:0;top:0;box-shadow:0 0 0 2px var(--obsidian)}

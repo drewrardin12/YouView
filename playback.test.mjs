@@ -50,7 +50,7 @@ function harness(){
 }
 {
  const{run,node}=harness();run("st.channels[0].watchSeconds=90;st.history.keep={at:123};st.progress.keep={position:45};resetUploadCounters()");
- assert.equal(run('st.uploadCounterResetVersion'),1);assert.ok(run('st.channels[0].lastVisit')>0);assert.equal(run('st.channels[0].watchSeconds'),90);assert.equal(run('st.progress.keep.position'),45);
+ assert.equal(run('st.uploadCounterResetVersion'),2);assert.ok(run('st.channels[0].lastVisit')>0);assert.equal(run('st.channels[0].watchSeconds'),90);assert.equal(run('st.progress.keep.position'),45);
  const baseline=run('st.channels[0].lastVisit');run('initializeUploadCounters()');assert.equal(run('st.channels[0].lastVisit'),baseline);
  run("api=async()=>({video:st.videos[0]});ensureYT=async()=>{throw Error('Test boundary')};route='shorts'");await run("play('aaaaaaaaaaa')");assert.equal(node('#player-shell').classList['shorts-full'],true);
  run("route='home'");await run("play('aaaaaaaaaaa')");assert.equal(node('#player-shell').classList['shorts-full'],false);
@@ -202,5 +202,10 @@ function harness(){
 {
  const{run,node}=harness();run("st.videos[0].duration=30;st.videos[0].cachedAt=Date.now();ensureYT=async()=>{throw Error('Stop after setup')}");await run("play('aaaaaaaaaaa')");assert.equal(node('#player-shell').classList['shorts-full'],true,'Opening a Short from history/search defaults to immersive mode');
  run("st.videos.push({id:'ccccccccccc',channelId:'unapproved',title:'Forbidden'});updatePlayerDetails(st.videos[0])");assert.doesNotMatch(node('#related-pane').innerHTML,/ccccccccccc/);run("playerDetailsTab('Description')");assert.equal(node('#description-pane').classList.hidden,false);assert.equal(node('#chapter-pane').classList.hidden,true);
+}
+{
+ const{run}=harness();run("st.uploadCounterResetVersion=1;st.channels[0].lastVisit=1;st.videos[0].published=new Date(Date.now()-1000).toISOString();initializeUploadCounters()");assert.equal(run('st.uploadCounterResetVersion'),2);assert.doesNotMatch(run('bubble(st.channels[0])'),/upload-dot/,'Existing uploads cleared by one-time migration');
+ run("st.videos[0].published=new Date(Date.now()+1000).toISOString()");assert.match(run('bubble(st.channels[0])'),/class="badge upload-dot"[^>]*><\/span>/,'New uploads use an empty red dot');assert.doesNotMatch(run('bubble(st.channels[0])'),/>1<\/span>/);
+ run('st.videos[0].live=true');assert.match(run('bubble(st.channels[0])'),/>LIVE<\/span>/,'Live indicator remains distinct');
 }
 console.log('Checks passed: playback, allowlist, chapters including bracketed ranges, search, historical indexing, complete playlist ordering/duplicates, saved keys, and handoff URL parsing.');

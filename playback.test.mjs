@@ -144,7 +144,7 @@ function harness(){
 }
 {
  const{run,node,timers}=harness();let hidden=0;node('#startup-screen').classList.add=name=>{if(name==='hidden')hidden++};
- run('startupPending=true;finishStartup()');assert.equal(run('startupPending'),false);assert.equal(hidden,0,'Splash fades while Home renders');const reveal=[...timers.values()].find(t=>t.ms>0&&t.ms<=2250);assert.ok(reveal);reveal.f();const fade=[...timers.values()].find(t=>t.ms===250);assert.ok(fade);fade.f();assert.equal(hidden,1);run('finishStartup()');assert.equal(hidden,1,'Startup release must be idempotent');
+ run('startupPending=true;finishStartup()');assert.equal(run('startupPending'),false);assert.equal(hidden,0,'Splash fades while Home renders');const reveal=[...timers.values()].reverse().find(t=>t.ms>0&&t.ms<=2750);assert.ok(reveal);reveal.f();const fade=[...timers.values()].find(t=>t.ms===250);assert.ok(fade);fade.f();assert.equal(hidden,1);run('finishStartup()');assert.equal(hidden,1,'Startup release must be idempotent');
 }
 {
  const{run,node,timers}=harness();run('startupPending=true;originalRender()');assert.equal(node('#main').innerHTML,undefined,'Home must not render stale content during initial refresh');

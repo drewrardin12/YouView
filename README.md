@@ -73,3 +73,5 @@ Version 1.4.4 CLEAN: verified @lebron against YouTube’s official launch announ
 - ★★★★★ Cross-device sync: backend, authentication, reconciliation, device tests. Schema only is prepared.
 - ★★★★★ Native iPhone/PiP investigation; outcome uncertain.
 Design handoff and icon/design work are separate and excluded. Build words should be playful rather than feature names; current release is 1.4.9 POPCORN.
+
+1.5.0 MATINEE: startup screen gates Home rendering until local state and initial upload refresh complete. A 12-second limit and Open without waiting prevent an indefinite loading screen; slow requests may finish after that fallback. No artificial minimum delay. Device-only tests are deferred.

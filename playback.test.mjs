@@ -7,7 +7,7 @@ function harness(){
  const timers=new Map();let tid=0;
  const context=vm.createContext({console,structuredClone,URL,URLSearchParams,crypto,Promise,Date,Math,JSON,Number,String,Map,Set,Error,Blob,queueMicrotask,sessionStorage:{getItem(){return null}},indexedDB:{open:()=>({})},navigator:{},location:{origin:'https://example.test'},document:{querySelector:node,querySelectorAll:()=>[],getElementById:()=>null,createElement:()=>({remove(){}}),head:{append(){}},addEventListener(){}},window:{addEventListener(){},scrollTo(){}},setInterval(){},setTimeout(f,ms){const id=++tid;timers.set(id,{f,ms});return id},clearTimeout(id){timers.delete(id)}});
  vm.runInContext(source,context);const run=s=>vm.runInContext(s,context);
- run(`originalRender=render;render=()=>{};persist=()=>Promise.resolve();st={channels:[{id:'approved',key:'test',name:'Approved channel',category:'NBA'}],videos:[{id:'aaaaaaaaaaa',channelId:'approved',title:'A',madeForKids:false},{id:'bbbbbbbbbbb',channelId:'approved',title:'B',madeForKids:false}],progress:{},history:{}};api=async()=>({video:null});`);
+ run(`startupPending=false;originalRender=render;render=()=>{};persist=()=>Promise.resolve();st={channels:[{id:'approved',key:'test',name:'Approved channel',category:'NBA'}],videos:[{id:'aaaaaaaaaaa',channelId:'approved',title:'A',madeForKids:false},{id:'bbbbbbbbbbb',channelId:'approved',title:'B',madeForKids:false}],progress:{},history:{}};api=async()=>({video:null});`);
  return{run,node,context,timers};
 }
 {
@@ -141,5 +141,13 @@ function harness(){
 }
 {
  const{run}=harness();run("st.videos.forEach(v=>v.duration=30);shortsSequence=['aaaaaaaaaaa','bbbbbbbbbbb'];current=st.videos[0]");assert.equal(run('nextShortId(1)'),'bbbbbbbbbbb');assert.equal(run('nextShortId(-1)'),null);run('st.videos[1].isShort=false');assert.equal(run('nextShortId(1)'),null);run("st.videos[1].isShort=true;st.videos[1].channelId='foreign'");assert.equal(run('nextShortId(1)'),null);
+}
+{
+ const{run,node}=harness();let hidden=0;node('#startup-screen').classList.add=name=>{if(name==='hidden')hidden++};
+ run('startupPending=true;finishStartup()');assert.equal(run('startupPending'),false);assert.equal(hidden,1);run('finishStartup()');assert.equal(hidden,1,'Startup release must be idempotent');
+}
+{
+ const{run,node,timers}=harness();run('startupPending=true;originalRender()');assert.equal(node('#main').innerHTML,undefined,'Home must not render stale content during initial refresh');
+ const fallback=[...timers.values()].find(t=>t.ms===12000);assert.ok(fallback);fallback.f();assert.equal(run('startupPending'),false,'A stalled refresh must not trap the user on splash');
 }
 console.log('Checks passed: playback, allowlist, chapters including bracketed ranges, search, historical indexing, complete playlist ordering/duplicates, saved keys, and handoff URL parsing.');

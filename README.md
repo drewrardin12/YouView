@@ -119,3 +119,12 @@ The upper-left red glass layer is reusable and static, with a localized glint/re
 ## 1.10.1 SCREENCRAFT — brand reference and featured-card contrast
 Applies the supplied Brand Identity & Design System v1.0: self-hosted Montserrat ExtraBold for the wordmark/major headings, supporting system sans-serif for UI/video titles/metadata/buttons, and the poster's red/crimson/obsidian/graphite palette. The current Home composition, approved content, four-tab icon navigation, selected app icon and playback behavior remain. The reference's illustrative downloads, watch-later examples and fifth navigation item are not added as new features.
 The Home feature uses an explicit, non-interactive scrim sibling between artwork and controls, with a stronger bottom-to-top gradient and light text shadow. This avoids relying on a negative-stack decoration and applies at phone and desktop sizes. Duration/progress stay above the gradient. Missing images, freshness and watched dimming remain supported. Montserrat's OFL is packaged in fonts/Montserrat-OFL.txt. Regression and asset checks pass; browser/device visual review remains pending.
+
+
+## Reusable interface icon system
+
+The interface now uses `assets/ui-icons.svg`: a shared 24-unit vector family with current-color strokes and restrained red accents. App logos, channel artwork and the official YouTube player are unaffected. `assets/icon-system.js` decorates app-owned controls on initial load and subsequent route/menu updates without replacing their event listeners or accessible labels. `assets/icon-system.css` supplies consistent sizing and compact circular category filters.
+
+Regenerate the sprite and manifest with `python3 tools/build-icons.py`; regenerate the iPhone entry with `python3 build-iphone.py`. `assets/icon-manifest.json` lists canonical names and reusable aliases. Optional glyphs are assets only and do not enable new features.
+
+Verification: run `node --test playback.test.mjs sync/core.test.mjs sync/client.test.mjs`. Serve the project locally and visit `tools/icon-behavior.html` for eight browser checks covering initial decoration, accessible naming, duplicate prevention, existing listeners, rerendered labels and dynamically inserted menus. The Home fixture generator includes the icon runtime for responsive visual review. Native player PiP/Cast/volume controls remain owned by YouTube/browser.

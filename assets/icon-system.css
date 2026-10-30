@@ -1,0 +1,23 @@
+/* One vector family, decorative icons and stable accessible touch targets. */
+.ui-icon{display:inline-block;width:24px;height:24px;flex:0 0 auto;vertical-align:middle;color:inherit;pointer-events:none;overflow:visible}
+.has-ui-icon{display:inline-flex;align-items:center;gap:8px}
+.has-ui-icon>.ui-icon{width:19px;height:19px}
+.icon-only{display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:44px;padding:9px}
+.icon-only>.ui-icon{width:24px;height:24px}
+aside button.has-ui-icon{display:flex;width:100%;gap:14px}
+aside button .ui-icon{width:24px;height:24px}
+.library-tile .tile-icon .ui-icon{width:30px;height:30px}
+.channel-collections button>span .ui-icon{width:28px;height:28px}
+.library-tile>span:last-child .ui-icon{width:18px;height:18px}
+.empty .big .ui-icon{width:40px;height:40px;opacity:.6}
+.playlist-art>.ui-icon{width:44px;height:44px}
+.approved-pill .ui-icon{width:16px;height:16px}
+.player-bar button .ui-icon{width:24px;height:24px}
+.shelf-menu button.has-ui-icon,.home-video-menu button.has-ui-icon{display:flex}
+.filters{display:flex;flex-wrap:nowrap;gap:8px;overflow-x:auto;align-items:flex-start;padding:4px 0 8px;scrollbar-width:none}
+.filters::-webkit-scrollbar{display:none}
+.filters .category-icon-chip{display:flex;flex-direction:column;justify-content:center;gap:5px;flex:0 0 46px;min-width:46px;min-height:60px;padding:0;border:0;background:transparent;color:var(--muted,#a6abad);font-size:11px;line-height:1.2;white-space:nowrap}
+.filters .category-icon-chip>.ui-icon{box-sizing:content-box;width:18px;height:18px;padding:8px;border:1px solid #34363b;border-radius:50%;background:#17191d;color:#f5f5f5}
+.filters .category-icon-chip.on{background:transparent;color:var(--white,#fff)}
+.filters .category-icon-chip.on>.ui-icon{color:var(--red,#ff2028);border-color:var(--red,#ff2028);background:#310d13}
+@media(prefers-reduced-motion:no-preference){button .ui-icon{transition:color .16s ease,opacity .16s ease}}

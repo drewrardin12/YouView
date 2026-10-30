@@ -1,0 +1,20 @@
+<!doctype html><meta charset="utf-8"><link rel="stylesheet" href="../assets/icon-system.css"><style>body{background:#08090b;color:white;font:16px system-ui}button{color:white;background:#202126;padding:12px;margin:8px}</style><h1>Icon integration checks</h1><div id="test-root"><button id="refresh">↻ Refresh</button><button id="back10" aria-label="Rewind ten seconds">↶10</button><button id="close-player" aria-label="Close player">✕</button></div><pre id="results">Running…</pre><script src="../assets/icon-system.js"></script><script>
+window.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{
+ const results=[],root=document.querySelector('#test-root'),refresh=document.querySelector('#refresh');let clicks=0;refresh.addEventListener('click',()=>clicks++);
+ const check=(name,value)=>results.push({name,pass:!!value});
+ check('initial SVG insertion',refresh.querySelectorAll('svg').length===1);
+ check('icon-only accessible name',document.querySelector('#back10').getAttribute('aria-label')==='Rewind ten seconds');
+ check('old symbol removed',!document.querySelector('#back10').textContent.includes('↶'));
+ window.YouViewIcons.apply(root);window.YouViewIcons.apply(root);
+ check('idempotent decoration',refresh.querySelectorAll('svg').length===1);
+ refresh.click();check('original listener preserved',clicks===1);
+ refresh.textContent='Refreshing…';
+ const menu=document.createElement('div');menu.className='home-video-menu';menu.innerHTML='<button data-share-video="abcdefghijk">Share</button>';root.append(menu);
+ setTimeout(()=>{
+ check('icon restored after dynamic text replacement',refresh.querySelectorAll('svg').length===1&&refresh.textContent==='Refreshing…');
+ check('newly inserted menu decorated',menu.querySelectorAll('button > svg').length===1);
+ check('SVG hidden from accessibility tree',[...root.querySelectorAll('svg')].every(s=>s.getAttribute('aria-hidden')==='true'));
+ document.querySelector('#results').textContent=JSON.stringify(results,null,2);
+ },0);
+},0));
+</script>

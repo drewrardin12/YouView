@@ -5,7 +5,7 @@ import path from 'node:path';
 import vm from 'node:vm';
 const root=path.resolve(import.meta.dirname,'..'),out=path.resolve(process.argv[2]||'/tmp/youview-home-qa');
 fs.mkdirSync(out,{recursive:true});
-for(const file of ['design.css','home.css','assets','fonts'])fs.cpSync(path.join(root,file),path.join(out,file),{recursive:true});
+for(const file of ['design.css','home.css','brand.css','assets','fonts'])fs.cpSync(path.join(root,file),path.join(out,file),{recursive:true});
 const app=fs.readFileSync(path.join(root,'index.html'),'utf8'),source=app.match(/<script>([\s\S]*?)<\/script>/)[1];
 const nodes=new Map(),node=id=>{if(!nodes.has(id))nodes.set(id,{textContent:'',value:'',style:{},classList:{add(){},remove(){},toggle(){}},addEventListener(){}});return nodes.get(id)};
 const context=vm.createContext({console,structuredClone,URL,URLSearchParams,crypto,Promise,Date,Math,JSON,Number,String,Map,Set,Error,Blob,sessionStorage:{getItem(){return null}},indexedDB:{open:()=>({})},navigator:{},location:{origin:'https://example.test'},document:{querySelector:node,querySelectorAll:()=>[],addEventListener(){}},window:{addEventListener(){}},setInterval(){},setTimeout(){},clearTimeout(){}});

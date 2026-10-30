@@ -138,3 +138,6 @@ Fixes Home rendering to consume the personalized feed before applying category f
 
 ## 1.11.4 QUICK CUT
 A compact row directly below the official video provides rewind 10 seconds, toggle 2×/normal speed, and forward 10 seconds. Speed uses the official API's advertised playback rates, reflects native speed changes and disables when unavailable/loading. Active 2× is red. Controls remain outside the iframe, work in the mini-player and stay out of Shorts/native fullscreen. The other chat's watch/Continue Watching refinements are preserved. API behavior and playback regressions pass; device appearance remains unverified.
+
+## 1.11.5 CLOSE-UP
+Removes the profile/avatar button beside header Search, and removes the Playlists/Live cards from You/Library. The supplied profile photo is prepared locally; its upload awaits explicit approval to place it in the public GitHub repository. Continue Watching, History and Settings remain in the profile, and channel-specific playlist/live access remains available.

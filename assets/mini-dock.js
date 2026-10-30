@@ -4,5 +4,5 @@ function apply(){shell.dataset.dock=top?'top':'bottom';toggle.textContent=top?'M
 toggle.addEventListener('click',()=>{top=!top;apply()});let start=null;
 handle.addEventListener('pointerdown',e=>{if(!shell.classList.contains('mini'))return;start={y:e.clientY,top:shell.getBoundingClientRect().top};handle.setPointerCapture(e.pointerId)});
 handle.addEventListener('pointermove',e=>{if(!start)return;const y=Math.max(0,Math.min(innerHeight-shell.offsetHeight,e.clientY-start.y+start.top));shell.style.transform='translateY('+(y-start.top)+'px)'});
-function finish(e){if(!start)return;const moved=Math.abs(e.clientY-start.y)>8;if(moved)top=e.clientY<innerHeight/2;start=null;shell.style.transform='';apply()}
+function finish(e){if(!start)return;const moved=Math.abs(e.clientY-start.y)>8;if(moved)top=e.clientY<innerHeight/2;else top=!top;start=null;shell.style.transform='';apply()}
 handle.addEventListener('pointerup',finish);handle.addEventListener('pointercancel',()=>{start=null;shell.style.transform=''});handle.addEventListener('keydown',e=>{if(['ArrowUp','ArrowDown','Enter',' '].includes(e.key)){e.preventDefault();top=e.key==='ArrowUp'?true:e.key==='ArrowDown'?false:!top;apply()}});window.addEventListener('resize',apply);window.addEventListener('scroll',()=>{if(top)apply()},{passive:true});apply();})();

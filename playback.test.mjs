@@ -163,4 +163,21 @@ function harness(){
  run("st.videos[0].title='<script>unsafe</script>';st.videos[0].published=new Date().toISOString();historyType='All';historyChannel='All';query='' ");const html=run('historyPage()');assert.ok(html.includes('&lt;script&gt;'));assert.ok(!html.includes('<script>unsafe'));assert.ok(html.includes('history-item'));assert.ok(html.includes('data-remove-history'));
  run("historyChannel='foreign'");assert.ok(!run('historyPage()').includes('history-item'));
 }
+{
+ const{run}=harness();run("st.videos.forEach(v=>{v.duration=600;v.published=new Date().toISOString()});st.progress={aaaaaaaaaaa:{position:100,duration:600,finished:false,at:10},bbbbbbbbbbb:{position:200,duration:600,finished:false,at:20}};st.history={aaaaaaaaaaa:{at:5}};");assert.equal(run('continueVideos()[0].id'),'bbbbbbbbbbb','Shelf sorts by saved playback time, not history or upload time');run("dismissShelf('aaaaaaaaaaa')");assert.equal(run('st.progress.aaaaaaaaaaa.position'),100);assert.equal(run('st.history.aaaaaaaaaaa.at'),5);assert.equal(run('continueVideos().length'),1);run("st.shortOverrides={bbbbbbbbbbb:{value:true}};");assert.equal(run('continueVideos().length'),0,'Shorts stay out of long-form Continue Watching');
+ assert.equal(run("primaryRoute('channel')"),'channels');for(const r of ['you','continue','history','settings','live','playlists'])assert.equal(run(`primaryRoute('${r}')`),'you');
+}
+{
+ const{run,context,node}=harness();context.YT={PlayerState:{PLAYING:1,PAUSED:2,ENDED:0,CUED:5},Player:class{constructor(){}destroy(){}stopVideo(){}}};context.window.YT=context.YT;run("st.progress={aaaaaaaaaaa:{position:300,duration:600,finished:false,shelfDismissed:true}};st.history={aaaaaaaaaaa:{at:10}};api=async()=>({video:st.videos[0]});");await run("play('aaaaaaaaaaa',null,false,0,0,true)");assert.equal(new URL(node('#player-frame').child.src).searchParams.get('start'),'0','Explicit shelf restart overrides automatic resume');assert.equal(run('st.history.aaaaaaaaaaa.at'),10);assert.equal(run('st.progress.aaaaaaaaaaa.shelfDismissed'),undefined);
+}
+{
+ const{run,node}=harness();run("current=st.videos[0];current.duration=30;st.shortOverrides={aaaaaaaaaaa:{value:true}};transitioning=false;playerReady=true;player={getVideoUrl:()=> 'https://www.youtube.com/watch?v=aaaaaaaaaaa',getDuration:()=>30,getCurrentTime:()=>10,getPlayerState:()=>1};saveProgress()");assert.equal(run('st.progress.aaaaaaaaaaa.finished'),false,'Three-minute long-form rule must not prematurely complete Shorts');run('saveProgress(true)');assert.equal(run('st.progress.aaaaaaaaaaa.finished'),true);
+ run("st.progress={};st.history={};st.shortOverrides={};player.getCurrentTime=()=>0;saveProgress()");assert.equal(run('Object.keys(st.progress).length'),0,'Cued short-duration videos are not automatically marked watched');
+}
+{
+ const{run,node}=harness();run("st.videos.forEach(v=>v.duration=600);st.progress={aaaaaaaaaaa:{position:100,duration:600,finished:false,at:10}};");
+ for(const r of ['you','continue','live','playlists']){run(`route='${r}';selected=null;originalRender()`);assert.ok(node('#main').innerHTML.length>100,r+' renders a complete page');}
+ run("route='channel';selected=st.channels[0];tab='Home';originalRender()");assert.ok(node('#main').innerHTML.includes('Latest uploads'));assert.ok(node('#main').innerHTML.includes('data-channel-tab="Playlists"'));assert.ok(node('#main').innerHTML.includes('Approved channel'));
+ const markup=fs.readFileSync(new URL('./index.html',import.meta.url),'utf8'),footer=markup.match(/<footer class="mobile">([\s\S]*?)<\/footer>/)[1];assert.deepEqual([...footer.matchAll(/data-nav="([^"]+)"/g)].map(m=>m[1]),['home','shorts','channels','you']);
+}
 console.log('Checks passed: playback, allowlist, chapters including bracketed ranges, search, historical indexing, complete playlist ordering/duplicates, saved keys, and handoff URL parsing.');

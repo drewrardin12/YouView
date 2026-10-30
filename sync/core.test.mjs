@@ -12,3 +12,5 @@ assert.equal(cleanSnapshot({...initial,youtubeKey:'secret',videos:[]}).videos,un
 const corrected=capture({...initial,shortOverrides:{aaaaaaaaaaa:{value:false,at:100}}},a,'a',100);assert.equal(materialize(merge(corrected,b)).shortOverrides.aaaaaaaaaaa.value,false);
 assert.deepEqual(materialize(merge({},JSON.parse('{"progress":{"__proto__":{"at":1,"device":"bad","value":{}}}}'))).progress,{});
 console.log('Sync checks passed: concurrent progress, rewinds, deletion tombstones, deterministic merges, Shorts corrections, and credential exclusion.');
+
+const dismissed=capture({...initial,progress:{aaaaaaaaaaa:{position:100,duration:600,at:200,shelfDismissed:true}}},a,"a",200);assert.equal(materialize(merge(dismissed,b)).progress.aaaaaaaaaaa.shelfDismissed,true);

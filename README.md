@@ -82,3 +82,7 @@ Design handoff and icon/design work are separate and excluded. Build words shoul
 - Optional authenticated Supabase sync client and tests are implemented; see sync/README.md for provisioning and limitations. Backend SQL has NOT been run on a live project. No cloud sync is active by default.
 - ios/ contains a native WKWebView Xcode prototype with PiP/AirPlay explicitly enabled. Syntax/project-plist checks pass; no iOS compilation or device verification was possible without Xcode.
 No design-handoff implementation is included.
+
+## 1.7.0 SCREEN TIME — design items 1–6
+Shared handoff palette/system typography and white-You/red-View wordmark; restrained static corner reflection for uploads under 24 hours, with watched dimming taking precedence; classic date-grouped History rows, scoped search/type/channel filters, unavailable-metadata state, clear/undo preserving progress and original dates; Settings section shortcuts, labels and hierarchy; attributed timestamp/title chapter rows with active chapter tracking; raster iPhone/PWA assets exported from existing selected artwork. Icon source is a 552-pixel reference crop, not a vector master; 1024 output is upscaled.
+History V3 remains unselected. No Home hero, carousel, channel-library redesign, You/Library dashboard, or other later design tasks were implemented. Browser visual QA was unavailable; automated behavior and asset checks do not establish pixel-level reference fidelity or installed iPhone appearance.

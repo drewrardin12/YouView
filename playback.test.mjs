@@ -153,4 +153,14 @@ function harness(){
 {
  const{run}=harness();run("st.includeShortClips=false;current=st.videos[0];current.duration=30;current.title='Regular clip'");assert.equal(run('isShortForm(current)'),false);run("current.title='A creator clip #Shorts'");assert.equal(run('isShortForm(current)'),true);run("classifyShort(current.id,false)");assert.equal(run('isShortForm(current)'),false);run("classifyShort(current.id,true)");assert.equal(run('isShortForm(current)'),true);run('current.live=true');assert.equal(run('isShortForm(current)'),false);
 }
+{
+ const{run}=harness();run("st.progress={};st.videos[0].published=new Date(1000).toISOString()");assert.equal(run('isFreshUpload(st.videos[0],86400999)'),true);assert.equal(run('isFreshUpload(st.videos[0],86401000)'),false);run('st.progress.aaaaaaaaaaa={finished:true}');assert.equal(run('isFreshUpload(st.videos[0],2000)'),false,'Watched treatment takes precedence over freshness');assert.equal(run('isFreshUpload(st.videos[0],0)'),false);
+ assert.equal(run('activeChapterAt([0,60,120],119)'),60);assert.equal(run('activeChapterAt([0,60,120],120)'),120);assert.equal(run('activeChapterAt([60],5)'),null);
+}
+{
+ const{run,node,context}=harness();let clear,undo;context.confirm=()=>true;node('#clear-history').addEventListener=(name,f)=>clear=f;node('#undo-clear-history').addEventListener=(name,f)=>undo=f;
+ run("st.history={aaaaaaaaaaa:{at:100}};st.progress={aaaaaaaaaaa:{position:120,duration:600,finished:false}};bind()");clear();assert.equal(run('Object.keys(st.history).length'),0);assert.equal(run('st.progress.aaaaaaaaaaa.position'),120);undo();assert.equal(run('st.history.aaaaaaaaaaa.at'),100,'Undo must preserve original viewing dates');
+ run("st.videos[0].title='<script>unsafe</script>';st.videos[0].published=new Date().toISOString();historyType='All';historyChannel='All';query='' ");const html=run('historyPage()');assert.ok(html.includes('&lt;script&gt;'));assert.ok(!html.includes('<script>unsafe'));assert.ok(html.includes('history-item'));assert.ok(html.includes('data-remove-history'));
+ run("historyChannel='foreign'");assert.ok(!run('historyPage()').includes('history-item'));
+}
 console.log('Checks passed: playback, allowlist, chapters including bracketed ranges, search, historical indexing, complete playlist ordering/duplicates, saved keys, and handoff URL parsing.');

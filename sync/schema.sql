@@ -19,7 +19,7 @@ begin
   if jsonb_typeof(next_state) <> 'object' or next_state is null then raise exception 'Invalid state'; end if;
   if octet_length(next_state::text) > 2000000 then raise exception 'State exceeds 2 MB'; end if;
   -- Only private viewing state, never API keys or the indexed video catalogue.
-  if next_state - array['channels','progress','history','deletedChannels','deletedHistory','deviceId','updatedAt'] <> '{}'::jsonb then raise exception 'Unsupported state fields'; end if;
+  if next_state - array['channels','progress','history','shortOverrides','deletedChannels','deletedHistory','deviceId','updatedAt'] <> '{}'::jsonb then raise exception 'Unsupported state fields'; end if;
   if expected_revision = 0 then
     insert into public.youview_state(user_id,state) values(owner_id,next_state) on conflict do nothing returning revision into new_revision;
   else

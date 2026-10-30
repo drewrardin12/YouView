@@ -75,3 +75,10 @@ Version 1.4.4 CLEAN: verified @lebron against YouTube’s official launch announ
 Design handoff and icon/design work are separate and excluded. Build words should be playful rather than feature names; current release is 1.4.9 POPCORN.
 
 1.5.0 MATINEE: startup screen gates Home rendering until local state and initial upload refresh complete. A 12-second limit and Open without waiting prevent an indefinite loading screen; slow requests may finish after that fallback. No artificial minimum delay. Device-only tests are deferred.
+
+## 1.6.0 DOUBLE FEATURE
+- Settings can index all approved archives with page checkpoints, pause/resume and a 1,000-page daily cap. Keep the app open. This does not make every archive instantly available; indexing needs the user's API key and can stop on quota/network errors.
+- Shorts defaults to #Shorts-labeled candidates plus persistent manual classifications. Unlabeled short clips are opt-in; exact Shorts identity is not exposed by the public API. Official embeds remain unmodified.
+- Optional authenticated Supabase sync client and tests are implemented; see sync/README.md for provisioning and limitations. Backend SQL has NOT been run on a live project. No cloud sync is active by default.
+- ios/ contains a native WKWebView Xcode prototype with PiP/AirPlay explicitly enabled. Syntax/project-plist checks pass; no iOS compilation or device verification was possible without Xcode.
+No design-handoff implementation is included.

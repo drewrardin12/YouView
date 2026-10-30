@@ -7,7 +7,7 @@ function harness(){
  const timers=new Map();let tid=0;
  const context=vm.createContext({console,structuredClone,URL,URLSearchParams,crypto,Promise,Date,Math,JSON,Number,String,Map,Set,Error,Blob,queueMicrotask,sessionStorage:{getItem(){return null}},indexedDB:{open:()=>({})},navigator:{},location:{origin:'https://example.test'},document:{querySelector:node,querySelectorAll:()=>[],getElementById:()=>null,createElement:()=>({remove(){}}),head:{append(){}},addEventListener(){}},window:{addEventListener(){},scrollTo(){}},setInterval(){},setTimeout(f,ms){const id=++tid;timers.set(id,{f,ms});return id},clearTimeout(id){timers.delete(id)}});
  vm.runInContext(source,context);const run=s=>vm.runInContext(s,context);
- run(`startupPending=false;originalRender=render;render=()=>{};persist=()=>Promise.resolve();st={channels:[{id:'approved',key:'test',name:'Approved channel',category:'NBA'}],videos:[{id:'aaaaaaaaaaa',channelId:'approved',title:'A',madeForKids:false},{id:'bbbbbbbbbbb',channelId:'approved',title:'B',madeForKids:false}],progress:{},history:{}};api=async()=>({video:null});`);
+ run(`startupPending=false;originalRender=render;render=()=>{};persist=()=>Promise.resolve();st={includeShortClips:true,channels:[{id:'approved',key:'test',name:'Approved channel',category:'NBA'}],videos:[{id:'aaaaaaaaaaa',channelId:'approved',title:'A',madeForKids:false},{id:'bbbbbbbbbbb',channelId:'approved',title:'B',madeForKids:false}],progress:{},history:{}};api=async()=>({video:null});`);
  return{run,node,context,timers};
 }
 {
@@ -149,5 +149,8 @@ function harness(){
 {
  const{run,node,timers}=harness();run('startupPending=true;originalRender()');assert.equal(node('#main').innerHTML,undefined,'Home must not render stale content during initial refresh');
  const fallback=[...timers.values()].find(t=>t.ms===12000);assert.ok(fallback);fallback.f();assert.equal(run('startupPending'),false,'A stalled refresh must not trap the user on splash');
+}
+{
+ const{run}=harness();run("st.includeShortClips=false;current=st.videos[0];current.duration=30;current.title='Regular clip'");assert.equal(run('isShortForm(current)'),false);run("current.title='A creator clip #Shorts'");assert.equal(run('isShortForm(current)'),true);run("classifyShort(current.id,false)");assert.equal(run('isShortForm(current)'),false);run("classifyShort(current.id,true)");assert.equal(run('isShortForm(current)'),true);run('current.live=true');assert.equal(run('isShortForm(current)'),false);
 }
 console.log('Checks passed: playback, allowlist, chapters including bracketed ranges, search, historical indexing, complete playlist ordering/duplicates, saved keys, and handoff URL parsing.');

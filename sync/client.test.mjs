@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+const handlers={},nodes=new Map(),storage=new Map();
+for(const id of ['sync-form','sync-url','sync-key','sync-email','sync-password','sync-now','sync-out','sync-status'])nodes.set('#'+id,{value:'',textContent:''});
+globalThis.document={querySelector:s=>nodes.get(s)||null,addEventListener(){},hidden:false};globalThis.localStorage={getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)};
+globalThis.window={addEventListener:(name,f)=>handlers[name]=f};globalThis.setInterval=()=>0;
+let snapshot={channels:[{key:'0',id:'UCaaaaaaaaaaaaaaaaaaaaaa',name:'Approved'}],progress:{aaaaaaaaaaa:{position:100,duration:600,at:100}},history:{aaaaaaaaaaa:{at:100}},shortOverrides:{}};
+window.youviewSync={snapshot:()=>snapshot,apply:async s=>snapshot=s};
+const writes=[];let conflicts=1;
+globalThis.fetch=async(url,opts)=>{let body,status=200;if(url.includes('/auth/v1/token'))body={user:{id:'owner'},access_token:'test-token',refresh_token:'refresh',expires_in:3600};else if(url.includes('/rest/v1/youview_state'))body=[];else{writes.push(JSON.parse(opts.body));if(conflicts-->0){status=400;body={message:'Sync conflict: fetch latest state before retrying'}}else body=1}return{ok:status===200,status,json:async()=>body}};
+await import('./client.js');nodes.get('#sync-url').value='https://example.supabase.co';nodes.get('#sync-key').value='sb_publishable_fixture';nodes.get('#sync-email').value='fixture@example.test';nodes.get('#sync-password').value='fixture-password';await nodes.get('#sync-form').onsubmit({preventDefault(){}});
+assert.equal(writes.length,2,'Revision conflict is retried from fresh remote state');assert.equal(nodes.get('#sync-password').value,'');assert.match(nodes.get('#sync-status').textContent,/Synced/);assert.ok(!JSON.stringify(writes).includes('fixture-password'));assert.ok(![...storage.values()].some(x=>x.includes('test-token')),'Tokens must stay out of local storage');
+nodes.get('#sync-out').onclick();assert.match(nodes.get('#sync-status').textContent,/Signed out/);assert.equal(snapshot.progress.aaaaaaaaaaa.position,100);
+console.log('Sync client checks passed: authenticated REST flow, conflict retry, local apply, sign-out, and credential isolation.');

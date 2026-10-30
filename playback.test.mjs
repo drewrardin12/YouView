@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 const source=fs.readFileSync(new URL('./index.html',import.meta.url),'utf8').match(/<script>([\s\S]*?)<\/script>/)[1];
 function harness(){
- const nodes=new Map();const node=id=>{if(!nodes.has(id))nodes.set(id,{textContent:'',value:'',querySelectorAll(){return[]},classList:{hidden:false,toggle(k,v){this[k]=v},add(){},remove(){}},replaceChildren(child){this.child=child},append(){},addEventListener(){}});return nodes.get(id)};
+ const nodes=new Map();const node=id=>{if(!nodes.has(id))nodes.set(id,{textContent:'',value:'',style:{},setAttribute(){},querySelectorAll(){return[]},classList:{hidden:false,toggle(k,v){this[k]=v},add(...keys){keys.forEach(k=>this[k]=true)},remove(...keys){keys.forEach(k=>this[k]=false)},contains(k){return this[k]===true}},replaceChildren(child){this.child=child},append(){},addEventListener(){}});return nodes.get(id)};
  const timers=new Map();let tid=0;
  const context=vm.createContext({console,structuredClone,URL,URLSearchParams,crypto,Promise,Date,Math,JSON,Number,String,Map,Set,Error,Blob,queueMicrotask,sessionStorage:{getItem(){return null}},indexedDB:{open:()=>({})},navigator:{},location:{origin:'https://example.test'},document:{querySelector:node,querySelectorAll:()=>[],getElementById:()=>null,createElement:()=>({remove(){}}),head:{append(){}},addEventListener(){}},window:{addEventListener(){},scrollTo(){}},setInterval(){},setTimeout(f,ms){const id=++tid;timers.set(id,{f,ms});return id},clearTimeout(id){timers.delete(id)}});
  vm.runInContext(source,context);const run=s=>vm.runInContext(s,context);
@@ -45,7 +45,7 @@ function harness(){
  assert.equal(run('isShortForm({duration:180})'),true);assert.equal(run('isShortForm({duration:181})'),false);
  assert.equal(run('isShortForm({duration:0})'),false);assert.equal(run('isShortForm({duration:30,live:true})'),false);assert.equal(run('isShortForm({duration:30,wasLive:true})'),false);assert.equal(run('isShortForm({duration:30,isShort:false})'),false);
  run("render=originalRender;route='shorts';st.videos[0].duration=30;st.videos[1].channelId='unapproved';st.videos[1].duration=20;render()");
- assert.match(node('#main').innerHTML,/data-video="aaaaaaaaaaa"/);assert.doesNotMatch(node('#main').innerHTML,/data-video="bbbbbbbbbbb"/);
+ assert.match(node('#main').innerHTML,/data-short="aaaaaaaaaaa"/);assert.doesNotMatch(node('#main').innerHTML,/data-video="bbbbbbbbbbb"/);
  run("st.videos[0].duration=600;render()");assert.match(node('#main').innerHTML,/No short-form uploads found/);assert.doesNotMatch(node('#main').innerHTML,/Connect YouTube/);
 }
 {
@@ -179,5 +179,28 @@ function harness(){
  for(const r of ['you','continue','live','playlists']){run(`route='${r}';selected=null;originalRender()`);assert.ok(node('#main').innerHTML.length>100,r+' renders a complete page');}
  run("route='channel';selected=st.channels[0];tab='Home';originalRender()");assert.ok(node('#main').innerHTML.includes('Latest uploads'));assert.ok(node('#main').innerHTML.includes('data-channel-tab="Playlists"'));assert.ok(node('#main').innerHTML.includes('Approved channel'));
  const markup=fs.readFileSync(new URL('./index.html',import.meta.url),'utf8'),footer=markup.match(/<footer class="mobile">([\s\S]*?)<\/footer>/)[1];assert.deepEqual([...footer.matchAll(/data-nav="([^"]+)"/g)].map(m=>m[1]),['home','shorts','channels','you']);
+}
+// Remaining design behavior: approval boundaries, scope and state preservation.
+{
+ const{run,node}=harness();run("st.videos[0].duration=600;st.videos[0].published='2026-01-01';st.videos[1].duration=600;st.videos[1].published='2026-02-01';st.videos.push({id:'ccccccccccc',channelId:'unapproved',title:'Hidden',duration:600,published:'2026-03-01'});route='home';originalRender()");
+ assert.match(node('#main').innerHTML,/home-hero/);assert.match(node('#main').innerHTML,/Latest uploads/);assert.doesNotMatch(node('#main').innerHTML,/data-video="ccccccccccc"/);
+ const feed=node('#main').innerHTML.split('id="latest-feed"')[1];assert.ok(feed.indexOf('data-video="bbbbbbbbbbb"')<feed.indexOf('data-video="aaaaaaaaaaa"'),'Home feed remains strictly newest first');
+}
+{
+ const{run,node}=harness();run("st.channels.push({id:'second',key:'two',name:'Second',watchSeconds:300,lastVisit:321});st.channels[0].lastVisit=123;carouselKey='test';route='channels';originalRender()");assert.match(node('#main').innerHTML,/channel-carousel/);assert.match(node('#main').innerHTML,/manage-channels/);
+ run('moveChannelPreview(-1)');assert.equal(run('carouselKey'),'two');assert.equal(run('st.channels[0].lastVisit'),123);assert.equal(run('st.channels[1].lastVisit'),321,'Preview never clears channel counters');run('channelCarousel()');assert.equal(run('carouselKey'),'two','Preview choice remains stable');
+}
+{
+ const{run,node}=harness();run("st.videos[0].title='Topic regular';st.videos[0].duration=600;st.videos[1].title='Topic short';st.videos[1].duration=30;st.videos.push({id:'ccccccccccc',channelId:'unapproved',title:'Topic hidden'});playlistSearchCache.set('ok',{id:'ok',channelId:'approved',title:'Topic playlist',cachedAt:Date.now()});playlistSearchCache.set('no',{id:'no',channelId:'unapproved',title:'Topic hidden',cachedAt:Date.now()});query='topic';route='search';searchKind='All';originalRender()");
+ assert.match(node('#main').innerHTML,/data-video="aaaaaaaaaaa"/);assert.match(node('#main').innerHTML,/data-short="bbbbbbbbbbb"/);assert.match(node('#main').innerHTML,/data-search-playlist="ok"/);assert.doesNotMatch(node('#main').innerHTML,/ccccccccccc|data-search-playlist="no"/);
+ run("searchKind='Shorts';searchOrder='Oldest';originalRender()");assert.equal(run('query'),'topic');assert.match(node('#main').innerHTML,/data-short="bbbbbbbbbbb"/);assert.doesNotMatch(node('#main').innerHTML,/data-video="aaaaaaaaaaa"/);
+ run("st.channels=[];searchKind='All';originalRender()");assert.doesNotMatch(node('#main').innerHTML,/data-short=|data-video=|data-search-playlist=/,'Removed channels immediately disappear from grouped results');
+}
+{
+ const{run}=harness();run("st.channels.push({id:'second',key:'two',name:'Second'});st.videos.forEach(v=>v.duration=30);st.videos[1].channelId='second';play=(id,queue,mode)=>{chosenShort={id,mode}};route='channel';selected=st.channels[0];launchShort('aaaaaaaaaaa')");assert.equal(run("shortsSequence.join(',')"),'aaaaaaaaaaa');assert.equal(run('chosenShort.mode'),true);run("route='search';selected=null;launchShort('bbbbbbbbbbb')");assert.equal(run('shortsSequence.length'),2);
+}
+{
+ const{run,node}=harness();run("st.videos[0].duration=30;st.videos[0].cachedAt=Date.now();ensureYT=async()=>{throw Error('Stop after setup')}");await run("play('aaaaaaaaaaa')");assert.equal(node('#player-shell').classList['shorts-full'],true,'Opening a Short from history/search defaults to immersive mode');
+ run("st.videos.push({id:'ccccccccccc',channelId:'unapproved',title:'Forbidden'});updatePlayerDetails(st.videos[0])");assert.doesNotMatch(node('#related-pane').innerHTML,/ccccccccccc/);run("playerDetailsTab('Description')");assert.equal(node('#description-pane').classList.hidden,false);assert.equal(node('#chapter-pane').classList.hidden,true);
 }
 console.log('Checks passed: playback, allowlist, chapters including bracketed ranges, search, historical indexing, complete playlist ordering/duplicates, saved keys, and handoff URL parsing.');

@@ -135,3 +135,6 @@ The retained light-sweep splash animation runs for 2.5 seconds. Its minimum visi
 
 ## 1.11.1 RIGHT ORDER
 Fixes Home rendering to consume the personalized feed before applying category filters. The ranker previously existed but the visible feed still consumed homeUploads(), leaving both modes chronological. Rendered markup tests now verify distinct rendered For you/Latest order with viewing signals and preserved category filtering. Mode controls are smile/refresh SVG icons with accessible names, tooltips and 44px touch targets. Latest refreshes the order selection; the separate Refresh uploads control still fetches content. Latest channel-page refinements from the other chat are preserved.
+
+## 1.11.4 QUICK CUT
+A compact row directly below the official video provides rewind 10 seconds, toggle 2×/normal speed, and forward 10 seconds. Speed uses the official API's advertised playback rates, reflects native speed changes and disables when unavailable/loading. Active 2× is red. Controls remain outside the iframe, work in the mini-player and stay out of Shorts/native fullscreen. The other chat's watch/Continue Watching refinements are preserved. API behavior and playback regressions pass; device appearance remains unverified.

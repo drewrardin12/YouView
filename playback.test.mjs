@@ -208,4 +208,16 @@ function harness(){
  run("st.videos[0].published=new Date(Date.now()+1000).toISOString()");assert.match(run('bubble(st.channels[0])'),/class="badge upload-dot"[^>]*><\/span>/,'New uploads use an empty red dot');assert.doesNotMatch(run('bubble(st.channels[0])'),/>1<\/span>/);
  run('st.videos[0].live=true');assert.match(run('bubble(st.channels[0])'),/>LIVE<\/span>/,'Live indicator remains distinct');
 }
+{
+ const{run,node}=harness();run("st.channels[0].image='';st.channels[0].lastVisit=1;st.videos[0].title='A very long landscape title that stays readable';st.videos[0].duration=600;st.videos[0].published=new Date(Date.now()-1000).toISOString();st.videos[1].duration=600;st.videos[1].published=new Date(Date.now()-2000).toISOString();st.videos[1].thumbnail='';st.videos.push({...st.videos[0]});route='home';originalRender()");
+ const html=node('#main').innerHTML;assert.match(html,/FROM YOUR CHANNELS/);assert.match(html,/A very long landscape title/);assert.doesNotMatch(html,/Your channels\.<br>Your pace|Live now|data-nav="history"/);assert.match(html,/home-video-menu/);assert.match(html,/assets\/avatar.svg/);assert.match(html,/assets\/video-unavailable.svg/);
+ const actions=html.match(/<nav class="home-actions"[^>]*>([\s\S]*?)<\/nav>/)[1];assert.equal([...actions.matchAll(/<button/g)].length,2);assert.match(actions,/Latest uploads/);assert.match(actions,/Continue watching/);
+ const feed=html.split('id="latest-feed"')[1];assert.equal([...feed.matchAll(/class="home-video-card /g)].length,2,'Home deduplicates only identical video IDs');assert.ok(feed.indexOf('data-video="aaaaaaaaaaa"')<feed.indexOf('data-video="bbbbbbbbbbb"'));
+ assert.match(run('homeChannels()'),/upload-dot/);run('st.videos[0].live=true');const channels=run('homeChannels()');assert.match(channels,/home-live-badge/);assert.match(channels,/upload-dot/,'Live and new-upload signals coexist independently');run('nav("channel","test")');assert.doesNotMatch(run('homeChannels()'),/upload-dot/,'Visiting the channel clears its dot');
+}
+{
+ const{run}=harness();run("st.videos[0].published=new Date(Date.now()-1000).toISOString();st.videos[0].duration=600;st.progress.aaaaaaaaaaa={position:500,duration:600,finished:true}");const art=run('homeArtwork(st.videos[0])');assert.match(art,/watched/);assert.doesNotMatch(art,/artwork-glass fresh/);assert.match(art,/class="progress"/);
+ run("st.videos[0].title='<script>alert(1)</script>';st.channels[0].name='<img onerror=bad>'");assert.doesNotMatch(run('homeCard(st.videos[0])'),/<script>|<img onerror/,'Home escapes metadata');
+ run("st.videos[1].channelId='removed'");assert.equal(run('homeCard(st.videos[1])'),'');
+}
 console.log('Checks passed: playback, allowlist, chapters including bracketed ranges, search, historical indexing, complete playlist ordering/duplicates, saved keys, and handoff URL parsing.');

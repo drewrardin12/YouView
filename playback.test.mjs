@@ -115,7 +115,7 @@ function harness(){
  const{run,context}=harness();let ready;let reloads=0;let destroys=0;
  context.YT={PlayerState:{PLAYING:1,PAUSED:2,ENDED:0,CUED:5},Player:class{constructor(id,o){ready=()=>o.events.onReady({target:this})}getVideoUrl(){return 'https://www.youtube.com/watch?v=aaaaaaaaaaa'}loadVideoById(){reloads++}destroy(){destroys++}stopVideo(){}}};context.window.YT=context.YT;
  run('api=async()=>({video:st.videos[0]})');await run("play('aaaaaaaaaaa',null,false)");ready();assert.equal(reloads,0,'Attaching progress tracking must not reload an already initialized video');
- await run("play('aaaaaaaaaaa',null,false)");assert.equal(destroys,1,'Regular videos get a fresh embed like Simplicity');
+ await run("play('aaaaaaaaaaa',null,false)");assert.equal(destroys,0,'Reopening the current video keeps its existing player and playback position');assert.equal(reloads,0,'Reopening must not reload playback');
 }
 {
  const{run}=harness();assert.equal(run("SEED.find(c=>c.name==='LeBron James').id"),'UCV9dV3DcAZWGnT2yFNKxStA');

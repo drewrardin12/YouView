@@ -1,5 +1,5 @@
 # YouView icon exports
 
-Raster exports of the existing selected icon in icon.svg, preserving its existing crop and artwork. No new icon concept was generated. The SVG contains an embedded raster reference sheet; its selected crop is 552 × 552 source pixels, not an independent vector master. The 1024 PNG is an upscaled packaging export and does not add source detail.
+Approved sculpted play icon, November 11, 2026. Full-bleed red artwork without a baked exterior frame; iOS supplies its corner mask.
 
-icon-180.png: Apple Home Screen. icon-192.png and icon-512.png: PWA manifest. icon-32.png: favicon. icon-1024.png: future packaging reference. Icons have opaque corners and purpose any; maskable variants are not asserted. Verify the installed appearance on an iPhone separately.
+32: favicon; 180: Apple Home Screen; 192 and 512: PWA; 1024: packaging master. Resized from the approved raster using macOS sips. PWA purpose remains any. Check installed appearance on iPhone.

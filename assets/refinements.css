@@ -19,3 +19,16 @@
 .player-shell.mini[data-dock=top]{top:var(--mini-top,64px)!important;border-radius:0 0 14px 14px}
 body:has(.player-shell.mini:not(.hidden)) main{padding-bottom:calc(56.25vw + 150px + env(safe-area-inset-bottom))!important}
 @media(min-width:900px){.player-shell.mini:not(.hidden){left:auto!important;right:20px!important;width:480px!important}.player-shell.mini[data-dock=bottom]{bottom:20px!important}}
+/* Compact dock: natural 16:9 video with one slim control row. */
+.player-shell.mini:not(.hidden){left:auto!important;right:8px!important;width:min(356px,calc(100vw - 16px))!important;grid-template-rows:auto 2px 44px;grid-template-columns:minmax(0,1fr);border-radius:12px;isolation:isolate}
+.player-shell.mini .player-frame{grid-row:1;height:max(200px,calc(min(356px,100vw - 16px)*9/16))!important;aspect-ratio:16/9!important;background:#000}
+.player-shell.mini .mini-progress{grid-row:2}
+.player-shell.mini .mini-info{grid-row:3;min-height:44px;padding:0 4px 0 36px;gap:4px}
+.player-shell.mini .mini-dock-tools{grid-row:3;grid-column:1;width:32px;height:44px;z-index:1;align-self:center;justify-self:start}
+.player-shell.mini #mini-drag{width:32px;min-width:32px;height:44px;min-height:44px}
+.player-shell.mini #mini-drag span{width:16px;height:3px;background:#777980}
+.player-shell.mini #mini-title{font-size:12px}
+.player-shell.mini .mini-actions button{width:44px;height:44px}
+.player-shell.mini[data-dock=top]{border-radius:12px}
+body:has(.player-shell.mini:not(.hidden)) main{padding-bottom:calc(330px + env(safe-area-inset-bottom))!important}
+@media(min-width:900px){.player-shell.mini:not(.hidden){right:20px!important;width:356px!important}}
